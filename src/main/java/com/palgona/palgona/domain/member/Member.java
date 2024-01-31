@@ -1,5 +1,6 @@
 package com.palgona.palgona.domain.member;
 
+import com.palgona.palgona.common.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class Member {
+public class Member extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -22,6 +23,8 @@ public class Member {
     private String nickname;
 
     private int mileage;
+
+    private String imageUrl;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
