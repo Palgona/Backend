@@ -17,6 +17,10 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
+### YML ###
+*.yml
+application.yml
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
