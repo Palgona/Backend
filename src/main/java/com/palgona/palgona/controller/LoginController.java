@@ -8,6 +8,7 @@ import com.palgona.palgona.dto.LoginResponse;
 import com.palgona.palgona.dto.MemberCreateRequest;
 import com.palgona.palgona.dto.MemberCreateRequestWithoutImage;
 import com.palgona.palgona.service.LoginService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.net.URI;
@@ -35,6 +36,7 @@ public class LoginController {
     @PostMapping(
             value = "/signup",
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    @Operation(summary = "회원 가입 api", description = "닉네임, 프로필을 받아서 회원가입을 진행한다.")
     public ResponseEntity<Void> create(
             @AuthenticationPrincipal CustomMemberDetails member,
             @RequestPart MemberCreateRequestWithoutImage request,
@@ -49,6 +51,7 @@ public class LoginController {
     }
 
     @GetMapping("/login")
+    @Operation(summary = "로그인 api", description = "kakao AccessToken을 받아서 로그인을 진행한다.")
     public LoginResponse login(
             HttpServletRequest request,
             HttpServletResponse response
