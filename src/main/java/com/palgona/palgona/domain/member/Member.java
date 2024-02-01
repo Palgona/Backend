@@ -16,7 +16,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Member extends BaseTimeEntity {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, length = 20, unique = true)
@@ -36,6 +38,22 @@ public class Member extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    private Member(int mileage, Status status, String email, Role role) {
+        this.mileage = mileage;
+        this.status = status;
+        this.email = email;
+        this.role = role;
+    }
+
+    public static Member of(
+            int mileage,
+            Status status,
+            String email,
+            Role role
+    ) {
+        return new Member(mileage, status, email, role);
+    }
 
     public boolean isUser() {
         return role == Role.USER;
