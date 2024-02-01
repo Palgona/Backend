@@ -20,7 +20,7 @@ public class Member extends BaseTimeEntity {
     private Long id;
 
     @Column(nullable = false, length = 20, unique = true)
-    private String nickname;
+    private String nickName;
 
     private int mileage;
 
@@ -36,4 +36,20 @@ public class Member extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    public boolean isUser() {
+        return role == Role.USER;
+    }
+
+    public boolean isGuest() {
+        return role == Role.GUEST;
+    }
+
+    public boolean isAdmin() {
+        return role == Role.ADMIN;
+    }
+
+    public void updateNickName(String nickName) {
+        this.nickName = nickName;
+    }
 }
