@@ -24,7 +24,7 @@ public class Member extends BaseTimeEntity {
 
     private int mileage;
 
-    private String imageUrl;
+    private String profileImage;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -51,5 +51,9 @@ public class Member extends BaseTimeEntity {
 
     public void updateNickName(String nickName) {
         this.nickName = nickName;
+    }
+
+    public void updateProfileImage(String imageUrl) {
+        this.profileImage = imageUrl;
     }
 }
