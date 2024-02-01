@@ -23,12 +23,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(config -> config.disable())
                 .formLogin(config -> config.disable())
                 .httpBasic(config -> config.disable())
-                .csrf(config -> config.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/login").permitAll()
+                        .requestMatchers("/api/v1/auth/login", "/v3/**", "swagger-ui/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtils, memberRepository),
                         UsernamePasswordAuthenticationFilter.class);

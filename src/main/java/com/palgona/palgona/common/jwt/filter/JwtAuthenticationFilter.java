@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
@@ -25,11 +26,14 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER = "bearer ";
     private static final String REFRESH_HEADER = "refresh-Authorization";
     private static final List<RequestMatcher> permittedRequestMatcher = Arrays.asList(
-            new AntPathRequestMatcher("/api/v1/auth/login"));
+            new AntPathRequestMatcher("/api/v1/auth/login"),
+            new AntPathRequestMatcher("/v3/**"),
+            new AntPathRequestMatcher("/swagger-ui/**"));
 
     private final JwtUtils jwtUtils;
 
@@ -40,6 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        log.info(request.getRequestURI());
         for (RequestMatcher requestMatcher : permittedRequestMatcher) {
             if (requestMatcher.matches(request)) {
                 filterChain.doFilter(request, response);
