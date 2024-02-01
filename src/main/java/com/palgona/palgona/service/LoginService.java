@@ -13,7 +13,6 @@ import com.palgona.palgona.dto.MemberCreateRequest;
 import com.palgona.palgona.repository.MemberRepository;
 import com.palgona.palgona.service.image.S3Service;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
