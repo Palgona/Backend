@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class JwtUtils {
+
+    private static final String CLAIM = "email";
+
     @Value("${spring.jwt.access.expireMs}")
     private Long accessExpirationTime;
 
@@ -26,7 +29,7 @@ public class JwtUtils {
 
     public String createAccessToken(String email) {
         return Jwts.builder()
-                .claim("email", email)
+                .claim(CLAIM, email)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + accessExpirationTime))
                 .signWith(secretKey)
@@ -35,7 +38,7 @@ public class JwtUtils {
 
     public String createRefreshToken(String email) {
         return Jwts.builder()
-                .claim("email", email)
+                .claim(CLAIM, email)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + refreshExpirationTime))
                 .signWith(secretKey)
@@ -48,7 +51,7 @@ public class JwtUtils {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
-                .get("email", String.class));
+                .get(CLAIM, String.class));
     }
 
     public Boolean isExpired(String token) {
