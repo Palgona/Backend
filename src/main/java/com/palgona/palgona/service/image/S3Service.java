@@ -8,18 +8,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class S3Service {
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    private final AmazonS3 amazonS3;
+    private final AmazonS3 AmazonS3;
 
     public String upload(MultipartFile file) {
         String imageUrl = "";
@@ -29,9 +31,9 @@ public class S3Service {
         objectMetadata.setContentType(file.getContentType());
 
         try (InputStream inputStream = file.getInputStream()) {
-            amazonS3.putObject(new PutObjectRequest(bucket , fileName, inputStream, objectMetadata)
+            AmazonS3.putObject(new PutObjectRequest(bucket , fileName, inputStream, objectMetadata)
                     .withCannedAcl(CannedAccessControlList.PublicRead));
-            imageUrl = amazonS3.getUrl(bucket, fileName).toString();
+            imageUrl = AmazonS3.getUrl(bucket, fileName).toString();
         } catch (IOException e) {
             throw new IllegalArgumentException("failed to upload");
         }
