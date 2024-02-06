@@ -28,7 +28,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private static final String BEARER = "bearer ";
+    private static final String BEARER = "Bearer ";
     private static final String REFRESH_HEADER = "refresh-Authorization";
     private static final List<RequestMatcher> permittedRequestMatcher = Arrays.asList(
             new AntPathRequestMatcher("/api/v1/auth/login"),
@@ -60,6 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } else {
             reIssueTokens(response, refreshToken);
         }
+        filterChain.doFilter(request, response);
     }
 
     private void authenticate(HttpServletRequest request) {
@@ -69,7 +70,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 () -> new IllegalArgumentException("access Token is not valid"));
         Member member = memberRepository.findBySocialId(socialId).orElseThrow(
                 () -> new IllegalArgumentException("user is not exist"));
-
         saveAuthentication(member);
     }
 
