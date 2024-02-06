@@ -3,18 +3,25 @@ package com.palgona.palgona.controller;
 import com.palgona.palgona.common.dto.CustomMemberDetails;
 import com.palgona.palgona.dto.MemberDetailResponse;
 import com.palgona.palgona.dto.MemberResponse;
+import com.palgona.palgona.dto.MemberUpdateRequest;
+import com.palgona.palgona.dto.MemberUpdateRequestWithoutImage;
 import com.palgona.palgona.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -47,5 +54,21 @@ public class MemberController {
 
         Slice<MemberResponse> response = memberService.findAllMember(pageable);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<Void> update(
+            @AuthenticationPrincipal CustomMemberDetails member,
+            @RequestPart MemberUpdateRequestWithoutImage request,
+            @RequestPart(required = false) MultipartFile image
+    ) {
+
+        MemberUpdateRequest memberUpdateRequest = MemberUpdateRequest.of(request, image);
+        memberService.update(member, memberUpdateRequest);
+
+        return ResponseEntity.ok()
+                .header("Location", "/api/v1/members/"
+                + member.getMember().getId())
+                .build();
     }
 }
