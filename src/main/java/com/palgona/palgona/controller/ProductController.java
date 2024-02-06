@@ -1,11 +1,13 @@
 package com.palgona.palgona.controller;
 
+import com.palgona.palgona.common.dto.CustomMemberDetails;
 import com.palgona.palgona.dto.ProductCreateRequest;
 import com.palgona.palgona.dto.ProductResponse;
 import com.palgona.palgona.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,10 +25,11 @@ public class ProductController {
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<Void> createProduct(
             @RequestPart(value = "productReq") ProductCreateRequest request,
-            @RequestPart(value = "files") List<MultipartFile> files
+            @RequestPart(value = "files") List<MultipartFile> files,
+            @AuthenticationPrincipal CustomMemberDetails member
     ){
 
-        productService.createProduct(request, files);
+        productService.createProduct(request, files, member);
 
         return ResponseEntity.ok()
                 .build();
@@ -39,5 +42,17 @@ public class ProductController {
         return ResponseEntity.ok()
                 .body(productResponse);
     }
+
+    @DeleteMapping("/product/{id}")
+    public ResponseEntity<Void> deleteProduct(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomMemberDetails member
+    ){
+
+        productService.deleteProduct(id, member);
+
+        return ResponseEntity.ok().build();
+    }
+
 
 }

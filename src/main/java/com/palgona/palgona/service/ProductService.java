@@ -34,53 +34,41 @@ public class ProductService {
 
     private final ProductImageRepository productImageRepository;
 
-    public void createProduct(ProductCreateRequest request, List<MultipartFile> imageFiles){
+    public void createProduct(ProductCreateRequest request, List<MultipartFile> imageFiles, CustomMemberDetails memberDetails) {
 
-        //시큐리티 컨텍스트 홀더에서 인증 객체 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Member member = memberDetails.getMember();
 
-        if (authentication != null && authentication.getPrincipal() instanceof CustomMemberDetails){
+        //상품 저장
+        Product product = Product.builder()
+                .name(request.name())
+                .initialPrice(request.initialPrice())
+                .content(request.content())
+                .category(Category.valueOf(request.category()))
+                .deadline(request.deadline())
+                .member(member)
+                .build();
 
-            //인증 객체에 저장된 멤버 정보 추출
-            Member member = ((CustomMemberDetails) authentication.getPrincipal()).getMember();
+        productRepository.save(product);
 
-            //상품 저장
-            Product product = Product.builder()
-                    .name(request.name())
-                    .initialPrice(request.initialPrice())
-                    .content(request.content())
-                    .category(Category.valueOf(request.category()))
-                    .deadline(request.deadline())
+        for (MultipartFile imageFile : imageFiles) {
+            //이미지 저장
+            String imageUrl = saveImage(imageFile, member.getId(), request.name());
+
+            Image image = Image.builder()
+                    .imageUrl(imageUrl)
                     .member(member)
                     .build();
 
-            productRepository.save(product);
+            imageRepository.save(image);
 
-            for(MultipartFile imageFile : imageFiles) {
-                //이미지 저장
-                String imageUrl = saveImage(imageFile, member.getId(), request.name());
+            //상품 이미지 연관관계 저장
+            ProductImage productImage = ProductImage.builder()
+                    .product(product)
+                    .image(image)
+                    .build();
 
-                Image image = Image.builder()
-                        .imageUrl(imageUrl)
-                        .member(member)
-                        .build();
-
-                imageRepository.save(image);
-
-                //상품 이미지 연관관계 저장
-                ProductImage productImage = ProductImage.builder()
-                        .product(product)
-                        .image(image)
-                        .build();
-
-                productImageRepository.save(productImage);
-            }
-
-        } else {
-            // 사용자가 인증되지 않았거나 'CustomMemberDetails'를 사용할 수 없는 경우
-            // 예외 처리 코드 삽입
+            productImageRepository.save(productImage);
         }
-
     }
 
     public ProductResponse readProduct(Long productId){
@@ -91,6 +79,14 @@ public class ProductService {
                 .collect(Collectors.toList());
 
         return ProductResponse.from(product, imageUrls);
+    }
+
+    public void deleteProduct(Long productId, CustomMemberDetails memberDetails){
+        Member member = memberDetails.getMember();
+
+        productRepository.findById(productId)
+                .filter(product -> product.getMember().getId().equals(member.getId()))
+                .ifPresent(productRepository::delete);
     }
 
     //테스트용) 로컬 resources/img폴더에 사진 저장
