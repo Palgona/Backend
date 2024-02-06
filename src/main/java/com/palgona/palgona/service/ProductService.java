@@ -7,6 +7,7 @@ import com.palgona.palgona.domain.product.Category;
 import com.palgona.palgona.domain.product.Product;
 import com.palgona.palgona.domain.product.ProductImage;
 import com.palgona.palgona.dto.ProductCreateRequest;
+import com.palgona.palgona.dto.ProductResponse;
 import com.palgona.palgona.repository.ImageRepository;
 import com.palgona.palgona.repository.ProductImageRepository;
 import com.palgona.palgona.repository.ProductRepository;
@@ -22,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -79,6 +81,16 @@ public class ProductService {
             // 예외 처리 코드 삽입
         }
 
+    }
+
+    public ProductResponse readProduct(Long productId){
+        Product product = productRepository.findById(productId).get();
+
+        List<String> imageUrls = productImageRepository.findByProduct(product).stream()
+                .map(productImage -> productImage.getImage().getImageUrl())
+                .collect(Collectors.toList());
+
+        return ProductResponse.from(product, imageUrls);
     }
 
     //테스트용) 로컬 resources/img폴더에 사진 저장

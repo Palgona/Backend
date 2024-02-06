@@ -1,6 +1,7 @@
 package com.palgona.palgona.controller;
 
 import com.palgona.palgona.dto.ProductCreateRequest;
+import com.palgona.palgona.dto.ProductResponse;
 import com.palgona.palgona.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -29,6 +30,14 @@ public class ProductController {
 
         return ResponseEntity.ok()
                 .build();
+    }
+
+    @GetMapping("/product/{id}")
+    public ResponseEntity<ProductResponse> readProduct( @PathVariable Long id ){
+        ProductResponse productResponse = productService.readProduct(id);
+
+        return ResponseEntity.ok()
+                .body(productResponse);
     }
 
 }
