@@ -65,9 +65,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void authenticate(HttpServletRequest request) {
         String accessToken = extractAccessToken(request).orElseThrow(
                 () -> new IllegalArgumentException("access Token is not valid"));
-        String email = jwtUtils.extractEmail(accessToken).orElseThrow(
+        String socialId = jwtUtils.extractSocialId(accessToken).orElseThrow(
                 () -> new IllegalArgumentException("access Token is not valid"));
-        Member member = memberRepository.findByEmail(email).orElseThrow(
+        Member member = memberRepository.findBySocialId(socialId).orElseThrow(
                 () -> new IllegalArgumentException("user is not exist"));
 
         saveAuthentication(member);
@@ -94,7 +94,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void reIssueTokens(HttpServletResponse response, String refreshToken) {
-        String email = jwtUtils.extractEmail(refreshToken).orElseThrow(
+        String email = jwtUtils.extractSocialId(refreshToken).orElseThrow(
                 () -> new IllegalArgumentException("refresh Token is not valid"));
 
         response.addHeader(REFRESH_HEADER, BEARER + jwtUtils.createRefreshToken(email));

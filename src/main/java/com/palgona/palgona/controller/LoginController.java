@@ -58,10 +58,10 @@ public class LoginController {
     ) {
 
         LoginResponse loginResponse = loginService.login(request);
-        String email = loginResponse.email();
+        String socialId = loginResponse.socialId();
 
-        String accessToken = jwtUtils.createAccessToken(email);
-        String refreshToken = jwtUtils.createRefreshToken(email);
+        String accessToken = jwtUtils.createAccessToken(socialId);
+        String refreshToken = jwtUtils.createRefreshToken(socialId);
         response.setHeader(AUTHORIZATION, BEARER + accessToken);
         response.setHeader(REFRESH_HEADER, BEARER + refreshToken);
 

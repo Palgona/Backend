@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtUtils {
 
-    private static final String CLAIM = "email";
+    private static final String CLAIM = "socialId";
 
     @Value("${spring.jwt.access.expireMs}")
     private Long accessExpirationTime;
@@ -27,25 +27,25 @@ public class JwtUtils {
                 Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 
-    public String createAccessToken(String email) {
+    public String createAccessToken(String socialId) {
         return Jwts.builder()
-                .claim(CLAIM, email)
+                .claim(CLAIM, socialId)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + accessExpirationTime))
                 .signWith(secretKey)
                 .compact();
     }
 
-    public String createRefreshToken(String email) {
+    public String createRefreshToken(String socialId) {
         return Jwts.builder()
-                .claim(CLAIM, email)
+                .claim(CLAIM, socialId)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + refreshExpirationTime))
                 .signWith(secretKey)
                 .compact();
     }
 
-    public Optional<String> extractEmail(String token) {
+    public Optional<String> extractSocialId(String token) {
         return Optional.ofNullable(Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
