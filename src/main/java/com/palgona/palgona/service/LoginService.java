@@ -3,6 +3,8 @@ package com.palgona.palgona.service;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palgona.palgona.common.dto.CustomMemberDetails;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.domain.member.Role;
@@ -31,14 +33,14 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional
 public class LoginService {
 
-    private static final String BEARER = "bearer ";
+    private static final String BEARER = "Bearer ";
 
     private final MemberRepository memberRepository;
     private final S3Service s3Service;
     private final RestTemplate restTemplate;
 
     public Long signUp(CustomMemberDetails loginMember, MemberCreateRequest memberCreateRequest) {
-        Member member = findMemberByEmail(loginMember);
+        Member member = findMemberBySocialId(loginMember);
         validateRoleOfMember(member);
         String nickName = memberCreateRequest.nickName();
         MultipartFile image = memberCreateRequest.image();
@@ -54,11 +56,13 @@ public class LoginService {
     public LoginResponse login(HttpServletRequest request) {
         String accessToken = extractToken(request);
         KakaoUserInfoResponse kakaoUserInfo = getKakaoUserInfo(accessToken);
-        String email = kakaoUserInfo.extractEmail();
 
-        Member findMember = memberRepository.findByEmail(email)
+        Member findMember = memberRepository.findBySocialId(kakaoUserInfo.id())
                 .orElseGet(() -> {
-                    Member member = Member.of(0, Status.ACTIVE, email, Role.GUEST);
+                    Member member = Member.of(0,
+                            Status.ACTIVE,
+                            kakaoUserInfo.id(),
+                            Role.GUEST);
                     memberRepository.save(member);
                     return member;
                 });
@@ -68,23 +72,32 @@ public class LoginService {
 
     private KakaoUserInfoResponse getKakaoUserInfo(String accessToken) {
         HttpEntity<MultiValueMap<String, String>> kakaoUserInfoRequest = getKakaoRequest(accessToken);
-        ResponseEntity<String> kakaoUserInfoResponse = restTemplate.exchange(
+        ResponseEntity<String> kakaoResponse = restTemplate.exchange(
                 "https://kapi.kakao.com/v2/user/me",
-                HttpMethod.POST,
+                HttpMethod.GET,
                 kakaoUserInfoRequest,
                 String.class
         );
 
-        // 테스트 요구 -> kakao 유저 정보 들어오는 거 보고 구현
-        log.info(kakaoUserInfoResponse.toString());
+        KakaoUserInfoResponse kakaoUserInfoResponse = parseKakaoInfo(kakaoResponse);
 
-        //return kakaoUserInfoResponse;
-        return null;
+        return kakaoUserInfoResponse;
+    }
+
+    private KakaoUserInfoResponse parseKakaoInfo(ResponseEntity<String> kakaoResponse) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        KakaoUserInfoResponse kakaoUserInfoResponse;
+        try {
+            kakaoUserInfoResponse = objectMapper.readValue(kakaoResponse.getBody(), KakaoUserInfoResponse.class);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("json parsing error");
+        }
+        return kakaoUserInfoResponse;
     }
 
     private HttpEntity<MultiValueMap<String, String>> getKakaoRequest(String accessToken) {
         HttpHeaders header = new HttpHeaders();
-        header.add(AUTHORIZATION, BEARER + accessToken);
+        header.add(AUTHORIZATION, accessToken);
         header.add(
                 "Content-type",
                 "application/x-www-form-urlencoded;charset=utf-8"
@@ -118,9 +131,9 @@ public class LoginService {
         }
     }
 
-    private Member findMemberByEmail(CustomMemberDetails loginMember) {
-        String email = loginMember.getUsername();
-        return memberRepository.findByEmail(email).orElseThrow(
+    private Member findMemberBySocialId(CustomMemberDetails loginMember) {
+        String socialId = loginMember.getUsername();
+        return memberRepository.findBySocialId(socialId).orElseThrow(
                 () -> new IllegalArgumentException("user is not exist"));
     }
 }
