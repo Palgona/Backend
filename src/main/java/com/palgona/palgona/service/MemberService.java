@@ -28,11 +28,11 @@ public class MemberService {
         return MemberDetailResponse.from(member);
     }
 
-    public MemberDetailResponse findById(Long id) {
+    public MemberResponse findById(Long id) {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("member not found"));
 
-        return MemberDetailResponse.from(member);
+        return MemberResponse.from(member);
     }
 
     public Slice<MemberResponse> findAllMember(Pageable pageable) {
