@@ -40,11 +40,11 @@ public class MemberController {
     }
 
     @GetMapping("/{memberId}")
-    public ResponseEntity<MemberDetailResponse> findById(
+    public ResponseEntity<MemberResponse> findById(
             @PathVariable Long memberId
     ) {
 
-        MemberDetailResponse response = memberService.findById(memberId);
+        MemberResponse response = memberService.findById(memberId);
         return ResponseEntity.ok(response);
     }
 
