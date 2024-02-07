@@ -12,8 +12,6 @@ import com.palgona.palgona.repository.ImageRepository;
 import com.palgona.palgona.repository.ProductImageRepository;
 import com.palgona.palgona.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -52,6 +50,7 @@ public class ProductService {
 
         for (MultipartFile imageFile : imageFiles) {
             //이미지 저장
+            //Todo: S3Service의 upload로 교체
             String imageUrl = saveImage(imageFile, member.getId(), request.name());
 
             Image image = Image.builder()
@@ -78,15 +77,45 @@ public class ProductService {
                 .map(productImage -> productImage.getImage().getImageUrl())
                 .collect(Collectors.toList());
 
+        //Todo: 입찰 정보, 채팅, 찜 정보도 가져오는 로직 추가
+
         return ProductResponse.from(product, imageUrls);
     }
 
     public void deleteProduct(Long productId, CustomMemberDetails memberDetails){
+
+        //Todo: 입찰이나 구매 완료 상품일때 예외 처리 로직 추가
+
         Member member = memberDetails.getMember();
 
         productRepository.findById(productId)
                 .filter(product -> product.getMember().getId().equals(member.getId()))
                 .ifPresent(productRepository::delete);
+
+        //Todo: 상품 이미지, 찜, 채팅 정보 cascade delete 로직 추가
+    }
+
+    public void updateProduct(
+            Long id,
+            ProductCreateRequest request,
+            List<MultipartFile> imageFiles,
+            CustomMemberDetails memberDetails){
+
+        //Todo: 입찰이나 구매 완료 상품일때 수정 불가능 처리 로직 추가
+
+        Member member = memberDetails.getMember();
+
+        // 상품 정보 수정
+        Product product = productRepository.findById(id).get();
+
+        product.updateName(request.name());
+        product.updateInitialPrice(request.initialPrice());
+        product.updateContent(request.content());
+        product.updateCategory(Category.valueOf(request.category()));
+        product.updateDeadline(request.deadline());
+
+        //Todo: 상품 이미지 수정 로직 추가 ( 이미지를 전체적으로 제거하고 다시 올리기 or 수정된 이미지만 처리 )
+
     }
 
     //테스트용) 로컬 resources/img폴더에 사진 저장

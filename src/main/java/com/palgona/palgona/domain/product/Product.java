@@ -45,4 +45,25 @@ public class Product extends BaseTimeEntity {
         this.deadline = deadline;
         this.member = member;
     }
+
+    public void updateName(String name){
+        this.name = name;
+    }
+
+    public void updateInitialPrice(Integer initialPrice){
+        this.initialPrice = initialPrice;
+    }
+
+    public void updateContent(String content){
+        this.content = content;
+    }
+
+    public void updateCategory(Category category){
+        this.category = category;
+    }
+
+    public void updateDeadline(LocalDateTime deadline){
+        this.deadline = deadline;
+    }
+
 }
