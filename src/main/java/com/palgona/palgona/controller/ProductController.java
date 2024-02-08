@@ -57,12 +57,14 @@ public class ProductController {
     @PutMapping(
             value = "/product/{id}",
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<Void> createProduct(
+    public ResponseEntity<Void> updateProduct(
             @PathVariable Long id,
             @RequestPart(value = "productReq") ProductCreateRequest request,
             @RequestPart(value = "files") List<MultipartFile> files,
             @AuthenticationPrincipal CustomMemberDetails member
     ){
+
+        productService.updateProduct(id, request, files, member);
 
         return ResponseEntity.ok().build();
     }

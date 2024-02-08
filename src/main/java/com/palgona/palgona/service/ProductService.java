@@ -11,15 +11,11 @@ import com.palgona.palgona.dto.ProductResponse;
 import com.palgona.palgona.repository.ImageRepository;
 import com.palgona.palgona.repository.ProductImageRepository;
 import com.palgona.palgona.repository.ProductRepository;
+import com.palgona.palgona.service.image.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +27,7 @@ public class ProductService {
     private final ImageRepository imageRepository;
 
     private final ProductImageRepository productImageRepository;
+    private final S3Service s3Service;
 
     public void createProduct(ProductCreateRequest request, List<MultipartFile> imageFiles, CustomMemberDetails memberDetails) {
 
@@ -50,8 +47,7 @@ public class ProductService {
 
         for (MultipartFile imageFile : imageFiles) {
             //이미지 저장
-            //Todo: S3Service의 upload로 교체
-            String imageUrl = saveImage(imageFile, member.getId(), request.name());
+            String imageUrl = s3Service.upload(imageFile);
 
             Image image = Image.builder()
                     .imageUrl(imageUrl)
@@ -116,22 +112,6 @@ public class ProductService {
 
         //Todo: 상품 이미지 수정 로직 추가 ( 이미지를 전체적으로 제거하고 다시 올리기 or 수정된 이미지만 처리 )
 
-    }
-
-    //테스트용) 로컬 resources/img폴더에 사진 저장
-    private String saveImage(MultipartFile imageFile, Long memberId, String productName) {
-        String uploadDir = getClass().getClassLoader().getResource("img").getPath();
-        uploadDir = uploadDir.replaceFirst("/", "");
-
-        String fileName = "/"+ System.currentTimeMillis() + "_" + productName + "_" + imageFile.getOriginalFilename();
-        Path filePath = Paths.get(uploadDir + fileName);
-
-        try {
-            Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return fileName;
     }
 
 }
