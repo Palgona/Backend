@@ -27,7 +27,7 @@ public class CustomMemberDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return member.getEmail();
+        return member.getSocialId();
     }
 
     @Override
@@ -50,5 +50,7 @@ public class CustomMemberDetails implements UserDetails {
         return true;
     }
 
-    public Member getMember(){ return member; }
+    public Member getMember() {
+        return member;
+    }
 }
