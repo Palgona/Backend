@@ -8,7 +8,6 @@ import com.palgona.palgona.dto.MemberUpdateRequest;
 import com.palgona.palgona.repository.MemberRepository;
 import com.palgona.palgona.service.image.S3Service;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -49,6 +48,7 @@ public class MemberService {
         Member member = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new IllegalArgumentException("member not found"));
 
+        s3Service.deleteFile(member.getProfileImage());
         String imageUrl = s3Service.upload(memberUpdateRequest.image());
 
         //TODO : nickName, profileImage 묶어서 embedded 타입으로 빼기
