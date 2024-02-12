@@ -2,6 +2,7 @@ package com.palgona.palgona.service.image;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import java.io.IOException;
@@ -38,6 +39,16 @@ public class S3Service {
             throw new IllegalArgumentException("failed to upload");
         }
         return imageUrl;
+    }
+
+    public void deleteFile(String imageUrl) {
+        DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(
+                bucket , parseKeyUrl(imageUrl));
+        AmazonS3.deleteObject(deleteObjectRequest);
+    }
+
+    private String parseKeyUrl(String imageUrl) {
+        return imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
     }
 
     private String createFileName(String fileName) {
