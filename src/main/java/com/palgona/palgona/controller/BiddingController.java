@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("¬")
+@RequestMapping("/api/v1/biddings")
 public class BiddingController {
     private final BiddingService biddingService;
 
@@ -39,9 +39,8 @@ public class BiddingController {
     @Operation(summary = "입찰 목록 api", description = "물건 id를 받아서 입찰 목록을 보여준다.")
     public ResponseEntity<BiddingPageResponse> findAllByProductId(@RequestParam long productId,
                                                             @PageableDefault(size = 20) Pageable pageable) {
-        Page<Bidding> biddingPage =  biddingService.findAllByProductId(productId, pageable);
-        List<Bidding> biddingList = biddingPage.toList();
-        BiddingPageResponse response = BiddingPageResponse.of(biddingPage, biddingList);
+        Page<Bidding> biddings =  biddingService.findAllByProductId(productId, pageable);
+        BiddingPageResponse response = BiddingPageResponse.of(biddings);
 
         return ResponseEntity.ok(response);
     }
