@@ -41,7 +41,7 @@ public class Product extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDateTime deadline;
 
-    @ManyToOne(targetEntity = Member.class)
+    @ManyToOne
     @JoinColumn(name = "member_id", foreignKey = @ForeignKey(name = "fk_product_to_member"))
     private Member member;
 
