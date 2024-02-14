@@ -1,5 +1,6 @@
 package com.palgona.palgona.domain.bidding;
 
+import com.palgona.palgona.common.entity.BaseTimeEntity;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.domain.product.Product;
 import jakarta.persistence.Column;
@@ -14,11 +15,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Bidding {
+public class Bidding extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,6 +38,7 @@ public class Bidding {
     @Column(name = "price")
     private int price;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(name = "state")
     private BiddingStatus status;
@@ -45,4 +50,5 @@ public class Bidding {
         this.price = price;
         this.status = BiddingStatus.ATTEMPT;
     }
+
 }
