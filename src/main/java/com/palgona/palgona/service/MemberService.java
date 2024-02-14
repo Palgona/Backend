@@ -1,9 +1,9 @@
 package com.palgona.palgona.service;
 
-import static com.palgona.palgona.common.error.ErrorCode.*;
+import static com.palgona.palgona.common.error.code.MemberErrorCode.*;
 
 import com.palgona.palgona.common.dto.CustomMemberDetails;
-import com.palgona.palgona.common.error.NotFoundMemberException;
+import com.palgona.palgona.common.error.exception.BusinessException;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.dto.MemberDetailResponse;
 import com.palgona.palgona.dto.MemberResponse;
@@ -32,7 +32,7 @@ public class MemberService {
 
     public MemberResponse findById(Long id) {
         Member member = memberRepository.findById(id)
-                .orElseThrow(() -> new NotFoundMemberException(MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(MEMBER_NOT_FOUND));
 
         return MemberResponse.from(member);
     }
