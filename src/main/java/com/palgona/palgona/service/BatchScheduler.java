@@ -10,7 +10,7 @@ public class BatchScheduler {
 
     private final BiddingService biddingService;
 
-    @Scheduled(cron = "0 0/5 * * * ?") // 5분 주기로 실행
+    @Scheduled(cron = "0/30 * * * * ?") // 5분 주기로 실행
     public void checkBiddingExpiration() {
         biddingService.checkBiddingExpiration();
     }
