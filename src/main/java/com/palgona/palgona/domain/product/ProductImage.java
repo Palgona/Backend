@@ -22,7 +22,7 @@ public class ProductImage {
     @JoinColumn(name = "product_id", foreignKey = @ForeignKey(name = "fk_product_image_to_product"))
     private Product product;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "image_id", foreignKey = @ForeignKey(name = "fk_product_image_to_image"))
     private Image image;
 
