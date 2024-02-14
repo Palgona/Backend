@@ -46,12 +46,7 @@ public class Member extends BaseTimeEntity {
         this.role = role;
     }
 
-    public static Member of(
-            int mileage,
-            Status status,
-            String socialId,
-            Role role
-    ) {
+    public static Member of(int mileage, Status status, String socialId, Role role) {
         return new Member(mileage, status, socialId, role);
     }
 
