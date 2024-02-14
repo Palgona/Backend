@@ -17,7 +17,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
@@ -38,17 +37,19 @@ public class Bidding extends BaseTimeEntity {
     @Column(name = "price")
     private int price;
 
-    @Setter
     @Enumerated(EnumType.STRING)
     @Column(name = "state")
-    private BiddingStatus status;
+    private BiddingState state;
 
     @Builder
     Bidding(Product product, Member member, int price) {
         this.product = product;
         this.member = member;
         this.price = price;
-        this.status = BiddingStatus.ATTEMPT;
+        this.state = BiddingState.ATTEMPT;
     }
 
+    public void updateState(BiddingState state) {
+        this.state = state;
+    }
 }

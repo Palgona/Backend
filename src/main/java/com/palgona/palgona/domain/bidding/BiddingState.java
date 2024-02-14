@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum BiddingStatus {
+public enum BiddingState {
     SUCCESS("SUCCESS", "성공"),
     FAILED("FAILED", "실패"),
     ATTEMPT("ATTEMPT", "시도");

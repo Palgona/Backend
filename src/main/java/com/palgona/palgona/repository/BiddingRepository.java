@@ -13,6 +13,6 @@ import org.springframework.data.repository.query.Param;
 public interface BiddingRepository extends JpaRepository<Bidding, Long> {
 
     Page<Bidding> findAllByProduct(Pageable pageable, Product product);
-    @Query("SELECT b FROM Bidding b WHERE b.status = 'ATTEMPT' AND b.product.deadline <= :currentDateTime")
+    @Query("SELECT b FROM Bidding b WHERE b.state = 'ATTEMPT' AND b.product.deadline <= :currentDateTime")
     List<Bidding> findExpiredBiddings(@Param("currentDateTime") LocalDateTime currentDateTime);
 }
