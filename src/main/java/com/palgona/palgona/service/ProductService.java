@@ -1,13 +1,16 @@
 package com.palgona.palgona.service;
 
 import com.palgona.palgona.common.dto.CustomMemberDetails;
+import com.palgona.palgona.domain.bidding.Bidding;
 import com.palgona.palgona.domain.image.Image;
 import com.palgona.palgona.domain.member.Member;
+import com.palgona.palgona.domain.member.Role;
 import com.palgona.palgona.domain.product.Category;
 import com.palgona.palgona.domain.product.Product;
 import com.palgona.palgona.domain.product.ProductImage;
 import com.palgona.palgona.dto.ProductCreateRequest;
 import com.palgona.palgona.dto.ProductResponse;
+import com.palgona.palgona.repository.BiddingRepository;
 import com.palgona.palgona.repository.ImageRepository;
 import com.palgona.palgona.repository.ProductImageRepository;
 import com.palgona.palgona.repository.ProductRepository;
@@ -15,6 +18,9 @@ import com.palgona.palgona.service.image.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +33,7 @@ public class ProductService {
     private final ImageRepository imageRepository;
 
     private final ProductImageRepository productImageRepository;
+    private final BiddingRepository biddingRepository;
     private final S3Service s3Service;
 
     public void createProduct(ProductCreateRequest request, List<MultipartFile> imageFiles, CustomMemberDetails memberDetails) {
@@ -80,15 +87,30 @@ public class ProductService {
 
     public void deleteProduct(Long productId, CustomMemberDetails memberDetails){
 
-        //Todo: 입찰이나 구매 완료 상품일때 예외 처리 로직 추가
-
         Member member = memberDetails.getMember();
 
-        productRepository.findById(productId)
-                .filter(product -> product.getMember().getId().equals(member.getId()))
-                .ifPresent(productRepository::delete);
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException());
 
-        //Todo: 상품 이미지, 찜, 채팅 정보 cascade delete 로직 추가
+
+        //1. 상품에 대한 권한 확인
+        if (!hasPermission(member, product)) {
+            throw new IllegalStateException("해당 상품에 대한 권한이 없습니다.");
+        }
+
+
+        //2. 입찰 내역에 있는 상품인지 확인
+        if (hasRelatedBidding(product)) {
+            throw new IllegalStateException("해당 상품과 관련된 입찰 내역이 있어 삭제할 수 없습니다.");
+        }
+
+        //Todo: 3. 구매 내역에 있는 상품인지 체크
+
+
+        //Todo: 4. 상품과 관련된 정보들 삭제(상품 이미지, 찜 정보)
+
+        //5. 상품 삭제
+        productRepository.delete(product);
     }
 
     public void updateProduct(
@@ -97,21 +119,43 @@ public class ProductService {
             List<MultipartFile> imageFiles,
             CustomMemberDetails memberDetails){
 
-        //Todo: 입찰이나 구매 완료 상품일때 수정 불가능 처리 로직 추가
-
         Member member = memberDetails.getMember();
 
-        // 상품 정보 수정
-        Product product = productRepository.findById(id).get();
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException());
 
+
+        //1. 상품에 대한 권한 확인
+        if (!hasPermission(member, product)) {
+            throw new IllegalStateException("해당 상품에 대한 권한이 없습니다.");
+        }
+
+        //2. 입찰 내역에 있는 상품인지 확인
+        if (hasRelatedBidding(product)) {
+            throw new IllegalStateException("해당 상품과 관련된 입찰 내역이 있어 수정할 수 없습니다.");
+        }
+
+        //Todo: 3. 구매 내역에 있는 상품인지 체크
+
+
+        //Todo: 4. 상품 이미지 수정 (수정된 이미지만 처리)
+
+        //5. 상품 정보 수정
         product.updateName(request.name());
         product.updateInitialPrice(request.initialPrice());
         product.updateContent(request.content());
         product.updateCategory(Category.valueOf(request.category()));
         product.updateDeadline(request.deadline());
+    }
 
-        //Todo: 상품 이미지 수정 로직 추가 ( 이미지를 전체적으로 제거하고 다시 올리기 or 수정된 이미지만 처리 )
+    private boolean hasRelatedBidding(Product product){
+        Pageable pageable = PageRequest.of(0, 1);
+        Page<Bidding> biddings = biddingRepository.findAllByProduct(pageable, product);
+        return biddings.getTotalElements() > 0;
+    }
 
+    private boolean hasPermission(Member member, Product product) {
+        return product.getMember().getId().equals(member.getId()) || (member.getRole() == Role.ADMIN);
     }
 
 }
