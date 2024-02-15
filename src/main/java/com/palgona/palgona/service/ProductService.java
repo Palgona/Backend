@@ -106,8 +106,16 @@ public class ProductService {
 
         //Todo: 3. 구매 내역에 있는 상품인지 체크
 
+        //4. 상품과 관련된 이미지 및 이미지 연관관계 삭제
+        List<ProductImage> productImages = productImageRepository.findByProduct(product);
+        for (ProductImage productImage : productImages) {
+            Image image = productImage.getImage();
+            s3Service.deleteFile(image.getImageUrl());
+            productImageRepository.delete(productImage);
+            imageRepository.delete(image);
+        }
 
-        //Todo: 4. 상품과 관련된 정보들 삭제(상품 이미지, 찜 정보)
+        //Todo: 4-2. 상품과 관련된 정보들 삭제(찜 정보) + 채팅 정보는 어떻게?
 
         //5. 상품 삭제
         productRepository.delete(product);
