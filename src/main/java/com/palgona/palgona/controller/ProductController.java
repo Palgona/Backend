@@ -3,6 +3,7 @@ package com.palgona.palgona.controller;
 import com.palgona.palgona.common.dto.CustomMemberDetails;
 import com.palgona.palgona.dto.ProductCreateRequest;
 import com.palgona.palgona.dto.ProductResponse;
+import com.palgona.palgona.dto.ProductUpdateRequest;
 import com.palgona.palgona.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -55,7 +56,7 @@ public class ProductController {
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<Void> updateProduct(
             @PathVariable Long productId,
-            @RequestPart(value = "productReq") ProductCreateRequest request,
+            @RequestPart(value = "productReq") ProductUpdateRequest request,
             @RequestPart(value = "files") List<MultipartFile> files,
             @AuthenticationPrincipal CustomMemberDetails member
     ){

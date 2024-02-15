@@ -10,6 +10,7 @@ import com.palgona.palgona.domain.product.Product;
 import com.palgona.palgona.domain.product.ProductImage;
 import com.palgona.palgona.dto.ProductCreateRequest;
 import com.palgona.palgona.dto.ProductResponse;
+import com.palgona.palgona.dto.ProductUpdateRequest;
 import com.palgona.palgona.repository.BiddingRepository;
 import com.palgona.palgona.repository.ImageRepository;
 import com.palgona.palgona.repository.ProductImageRepository;
@@ -123,7 +124,7 @@ public class ProductService {
 
     public void updateProduct(
             Long id,
-            ProductCreateRequest request,
+            ProductUpdateRequest request,
             List<MultipartFile> imageFiles,
             CustomMemberDetails memberDetails){
 
@@ -146,7 +147,42 @@ public class ProductService {
         //Todo: 3. 구매 내역에 있는 상품인지 체크
 
 
-        //Todo: 4. 상품 이미지 수정 (수정된 이미지만 처리)
+        //4. 상품 이미지 수정
+        //4-1. 삭제된 상품 이미지 처리
+        List<String> deletedImageUrls = request.deletedImageUrls();
+
+        for (String imageUrl : deletedImageUrls) {
+            // 이미지 파일 삭제 (S3 또는 다른 스토리지에 있는 이미지 파일 삭제)
+            s3Service.deleteFile(imageUrl);
+            // 이미지와 연관된 상품 이미지 및 이미지 삭제
+            ProductImage productImage = productImageRepository.findByProductAndImageUrl(product, imageUrl)
+                    .orElseThrow(() -> new IllegalArgumentException());
+
+            productImageRepository.delete(productImage);
+            imageRepository.delete(productImage.getImage());
+
+        }
+
+        //4-2. 새로 추가된 상품 이미지 저장
+        for (MultipartFile imageFile : imageFiles) {
+            //이미지 저장
+            String imageUrl = s3Service.upload(imageFile);
+
+            Image image = Image.builder()
+                    .imageUrl(imageUrl)
+                    .member(member)
+                    .build();
+
+            imageRepository.save(image);
+
+            //상품 이미지 연관관계 저장
+            ProductImage productImage = ProductImage.builder()
+                    .product(product)
+                    .image(image)
+                    .build();
+
+            productImageRepository.save(productImage);
+        }
 
         //5. 상품 정보 수정
         product.updateName(request.name());
