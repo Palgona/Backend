@@ -19,9 +19,6 @@ import com.palgona.palgona.service.image.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -95,15 +92,10 @@ public class ProductService {
 
 
         //1. 상품에 대한 권한 확인
-        if (!hasPermission(member, product)) {
-            throw new IllegalStateException("해당 상품에 대한 권한이 없습니다.");
-        }
-
+        checkPermission(member, product);
 
         //2. 입찰 내역에 있는 상품인지 확인
-        if (hasRelatedBidding(product)) {
-            throw new IllegalStateException("해당 상품과 관련된 입찰 내역이 있어 삭제할 수 없습니다.");
-        }
+        checkRelatedBidding(product);
 
         //Todo: 3. 구매 내역에 있는 상품인지 체크
 
@@ -135,14 +127,10 @@ public class ProductService {
 
 
         //1. 상품에 대한 권한 확인
-        if (!hasPermission(member, product)) {
-            throw new IllegalStateException("해당 상품에 대한 권한이 없습니다.");
-        }
+        checkPermission(member, product);
 
         //2. 입찰 내역에 있는 상품인지 확인
-        if (hasRelatedBidding(product)) {
-            throw new IllegalStateException("해당 상품과 관련된 입찰 내역이 있어 수정할 수 없습니다.");
-        }
+        checkRelatedBidding(product);
 
         //Todo: 3. 구매 내역에 있는 상품인지 체크
 
@@ -192,14 +180,16 @@ public class ProductService {
         product.updateDeadline(request.deadline());
     }
 
-    private boolean hasRelatedBidding(Product product){
-        Pageable pageable = PageRequest.of(0, 1);
-        Page<Bidding> biddings = biddingRepository.findAllByProduct(pageable, product);
-        return biddings.getTotalElements() > 0;
+    private void checkRelatedBidding(Product product){
+        if (biddingRepository.existsByProduct(product)) {
+            throw new IllegalStateException("해당 상품과 관련된 입찰 내역이 있어 변경할 수 없습니다.");
+        }
     }
 
-    private boolean hasPermission(Member member, Product product) {
-        return product.getMember().getId().equals(member.getId()) || (member.getRole() == Role.ADMIN);
+    private void checkPermission(Member member, Product product) {
+        if (!(product.isOwner(member) || member.isAdmin())) {
+            throw new IllegalStateException("해당 상품에 대한 권한이 없습니다.");
+        }
     }
 
 }

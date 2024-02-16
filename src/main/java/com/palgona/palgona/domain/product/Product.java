@@ -80,4 +80,8 @@ public class Product extends BaseTimeEntity {
         LocalDateTime currentDateTime = LocalDateTime.now();
         return currentDateTime.isAfter(this.deadline);
     }
+
+    public boolean isOwner(Member member){
+        return this.member.getId().equals(member.getId());
+    }
 }
