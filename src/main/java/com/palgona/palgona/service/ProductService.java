@@ -56,7 +56,6 @@ public class ProductService {
 
             Image image = Image.builder()
                     .imageUrl(imageUrl)
-                    .member(member)
                     .build();
 
             imageRepository.save(image);
@@ -158,7 +157,6 @@ public class ProductService {
 
             Image image = Image.builder()
                     .imageUrl(imageUrl)
-                    .member(member)
                     .build();
 
             imageRepository.save(image);

@@ -18,12 +18,12 @@ public class ProductImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", foreignKey = @ForeignKey(name = "fk_product_image_to_product"))
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @OneToOne
-    @JoinColumn(name = "image_id", foreignKey = @ForeignKey(name = "fk_product_image_to_image"))
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "image_id", nullable = false)
     private Image image;
 
     @Builder

@@ -21,14 +21,9 @@ public class Image extends BaseTimeEntity{
     @Column(nullable = false)
     private String imageUrl;
 
-    @ManyToOne
-    @JoinColumn(name = "member_id", foreignKey = @ForeignKey(name = "fk_image_to_member"))
-    private Member member;
-
     @Builder
-    public Image(String imageUrl, Member member){
+    public Image(String imageUrl){
         this.imageUrl = imageUrl;
-        this.member = member;
     }
 
 }
