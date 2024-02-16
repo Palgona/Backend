@@ -33,18 +33,28 @@ public class Product extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDateTime deadline;
 
+    @Column(nullable = false)
+    private ProductState productState;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @Builder
-    public Product(String name, Integer initialPrice, String content, Category category, LocalDateTime deadline,
-                   Member member) {
+    public Product(
+            String name,
+            Integer initialPrice,
+            String content,
+            Category category,
+            LocalDateTime deadline,
+            ProductState productState,
+            Member member) {
         this.name = name;
         this.initialPrice = initialPrice;
         this.content = content;
         this.category = category;
         this.deadline = deadline;
+        this.productState = productState;
         this.member = member;
     }
 
@@ -67,6 +77,8 @@ public class Product extends BaseTimeEntity {
     public void updateDeadline(LocalDateTime deadline) {
         this.deadline = deadline;
     }
+
+    public void updateProductState(ProductState productState) {this.productState = productState;}
 
     public boolean isDeadlineReached() {
         LocalDateTime currentDateTime = LocalDateTime.now();

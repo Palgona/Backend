@@ -8,6 +8,7 @@ import com.palgona.palgona.domain.member.Role;
 import com.palgona.palgona.domain.product.Category;
 import com.palgona.palgona.domain.product.Product;
 import com.palgona.palgona.domain.product.ProductImage;
+import com.palgona.palgona.domain.product.ProductState;
 import com.palgona.palgona.dto.ProductCreateRequest;
 import com.palgona.palgona.dto.ProductResponse;
 import com.palgona.palgona.dto.ProductUpdateRequest;
@@ -44,6 +45,7 @@ public class ProductService {
                 .initialPrice(request.initialPrice())
                 .content(request.content())
                 .category(Category.valueOf(request.category()))
+                .productState(ProductState.ON_SALE)
                 .deadline(request.deadline())
                 .member(member)
                 .build();
@@ -98,19 +100,20 @@ public class ProductService {
 
         //Todo: 3. 구매 내역에 있는 상품인지 체크
 
-        //4. 상품과 관련된 이미지 및 이미지 연관관계 삭제
-        List<ProductImage> productImages = productImageRepository.findByProduct(product);
-        for (ProductImage productImage : productImages) {
-            Image image = productImage.getImage();
-            s3Service.deleteFile(image.getImageUrl());
-            productImageRepository.delete(productImage);
-            imageRepository.delete(image);
-        }
+        //4. 상품과 관련된 이미지 및 이미지 연관관계 삭제 (soft delete면 아래 로직 수행 x)
+//        List<ProductImage> productImages = productImageRepository.findByProduct(product);
+//        for (ProductImage productImage : productImages) {
+//            Image image = productImage.getImage();
+//            s3Service.deleteFile(image.getImageUrl());
+//            productImageRepository.delete(productImage);
+//            imageRepository.delete(image);
+//        }
 
         //Todo: 4-2. 상품과 관련된 정보들 삭제(찜 정보) + 채팅 정보는 어떻게?
 
-        //5. 상품 삭제
-        productRepository.delete(product);
+        //5. 상품의 상태를 DELETED로 업데이트 (soft delete)
+        product.updateProductState(ProductState.DELETED);
+        productRepository.save(product);
     }
 
     public void updateProduct(
