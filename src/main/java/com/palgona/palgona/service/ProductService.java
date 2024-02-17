@@ -19,6 +19,7 @@ import com.palgona.palgona.repository.ProductRepository;
 import com.palgona.palgona.service.image.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public class ProductService {
     private final BiddingRepository biddingRepository;
     private final S3Service s3Service;
 
+    @Transactional
     public void createProduct(ProductCreateRequest request, List<MultipartFile> imageFiles, CustomMemberDetails memberDetails) {
 
         Member member = memberDetails.getMember();
@@ -84,6 +86,7 @@ public class ProductService {
         return ProductResponse.from(product, imageUrls);
     }
 
+    @Transactional
     public void deleteProduct(Long productId, CustomMemberDetails memberDetails){
 
         Member member = memberDetails.getMember();
@@ -113,9 +116,9 @@ public class ProductService {
 
         //5. 상품의 상태를 DELETED로 업데이트 (soft delete)
         product.updateProductState(ProductState.DELETED);
-        productRepository.save(product);
     }
 
+    @Transactional
     public void updateProduct(
             Long id,
             ProductUpdateRequest request,
