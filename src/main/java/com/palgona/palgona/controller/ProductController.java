@@ -3,6 +3,7 @@ package com.palgona.palgona.controller;
 import com.palgona.palgona.common.dto.CustomMemberDetails;
 import com.palgona.palgona.dto.ProductCreateRequest;
 import com.palgona.palgona.dto.ProductResponse;
+import com.palgona.palgona.dto.ProductUpdateRequest;
 import com.palgona.palgona.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -16,13 +17,12 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
+@RequestMapping("/api/v1/products")
 public class ProductController {
 
     private final ProductService productService;
 
-    @PostMapping(
-            value = "/product",
-            consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<Void> createProduct(
             @RequestPart(value = "productReq") ProductCreateRequest request,
             @RequestPart(value = "files") List<MultipartFile> files,
@@ -35,36 +35,33 @@ public class ProductController {
                 .build();
     }
 
-    @GetMapping("/product/{id}")
-    public ResponseEntity<ProductResponse> readProduct( @PathVariable Long id ){
-        ProductResponse productResponse = productService.readProduct(id);
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductResponse> readProduct(@PathVariable Long productId){
+        ProductResponse productResponse = productService.readProduct(productId);
 
         return ResponseEntity.ok()
                 .body(productResponse);
     }
 
-    @DeleteMapping("/product/{id}")
-    public ResponseEntity<Void> deleteProduct(
-            @PathVariable Long id,
-            @AuthenticationPrincipal CustomMemberDetails member
-    ){
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId, @AuthenticationPrincipal CustomMemberDetails member){
 
-        productService.deleteProduct(id, member);
+        productService.deleteProduct(productId, member);
 
         return ResponseEntity.ok().build();
     }
 
     @PutMapping(
-            value = "/product/{id}",
+            value = "/{productId}",
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<Void> updateProduct(
-            @PathVariable Long id,
-            @RequestPart(value = "productReq") ProductCreateRequest request,
+            @PathVariable Long productId,
+            @RequestPart(value = "productReq") ProductUpdateRequest request,
             @RequestPart(value = "files") List<MultipartFile> files,
             @AuthenticationPrincipal CustomMemberDetails member
     ){
 
-        productService.updateProduct(id, request, files, member);
+        productService.updateProduct(productId, request, files, member);
 
         return ResponseEntity.ok().build();
     }
