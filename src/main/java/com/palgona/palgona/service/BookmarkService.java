@@ -28,4 +28,10 @@ public class BookmarkService {
 
         bookmarkRepository.save(bookmark);
     }
+
+    public void deleteBookmark(Long productId, CustomMemberDetails memberDetails){
+        Member member = memberDetails.getMember();
+
+        bookmarkRepository.deleteByMemberAndProductId(member, productId);
+    }
 }
