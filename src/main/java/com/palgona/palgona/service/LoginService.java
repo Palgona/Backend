@@ -12,7 +12,7 @@ import com.palgona.palgona.domain.member.Status;
 import com.palgona.palgona.dto.KakaoUserInfoResponse;
 import com.palgona.palgona.dto.LoginResponse;
 import com.palgona.palgona.dto.MemberCreateRequest;
-import com.palgona.palgona.repository.MemberRepository;
+import com.palgona.palgona.repository.member.MemberRepository;
 import com.palgona.palgona.service.image.S3Service;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

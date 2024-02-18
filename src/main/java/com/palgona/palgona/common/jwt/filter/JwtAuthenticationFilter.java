@@ -5,7 +5,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import com.palgona.palgona.common.dto.CustomMemberDetails;
 import com.palgona.palgona.common.jwt.util.JwtUtils;
 import com.palgona.palgona.domain.member.Member;
-import com.palgona.palgona.repository.MemberRepository;
+import com.palgona.palgona.repository.member.MemberRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
