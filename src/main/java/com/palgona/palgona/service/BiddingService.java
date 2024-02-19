@@ -1,5 +1,10 @@
 package com.palgona.palgona.service;
 
+import static com.palgona.palgona.common.error.code.BiddingErrorCode.BIDDING_EXPIRED_PRODUCT;
+import static com.palgona.palgona.common.error.code.BiddingErrorCode.BIDDING_INSUFFICIENT_BID;
+import static com.palgona.palgona.common.error.code.BiddingErrorCode.BIDDING_LOWER_PRICE;
+
+import com.palgona.palgona.common.error.exception.BusinessException;
 import com.palgona.palgona.domain.bidding.Bidding;
 import com.palgona.palgona.domain.bidding.BiddingState;
 import com.palgona.palgona.domain.member.Member;
@@ -30,20 +35,20 @@ public class BiddingService {
         int attemptPrice = request.price();
 
         if (product.isDeadlineReached()) {
-            throw new RuntimeException("이미 입찰 마감된 상품입니다.");
+            throw new BusinessException(BIDDING_EXPIRED_PRODUCT);
         }
 
         int highestPrice = biddingRepository.findHighestPriceByProduct(product).orElse(0);
 
         if (attemptPrice <= highestPrice) {
-            throw new RuntimeException("현재 가격이 기존 최고 가격보다 낮습니다.");
+            throw new BusinessException(BIDDING_LOWER_PRICE);
         }
 
         int threshold = (int) Math.pow(10, String.valueOf(attemptPrice).length() - 1);
         int priceDifference = highestPrice - attemptPrice;
 
         if (priceDifference < threshold) {
-            throw new RuntimeException("입찰가격과 기존 최고 가격의 차이가 최소 단위보다 작습니다.");
+            throw new BusinessException(BIDDING_INSUFFICIENT_BID);
         }
         
         Bidding bidding = Bidding.builder().member(member).product(product).price(attemptPrice).build();
