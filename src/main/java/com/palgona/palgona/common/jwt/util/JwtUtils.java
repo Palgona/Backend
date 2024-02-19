@@ -54,7 +54,7 @@ public class JwtUtils {
                 .get(CLAIM, String.class));
     }
 
-    public Boolean isExpired(String token) {
+    public Boolean isValid(String token) {
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
