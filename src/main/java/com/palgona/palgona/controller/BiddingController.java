@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,7 +38,7 @@ public class BiddingController {
 
     @GetMapping("/{productId}")
     @Operation(summary = "입찰 목록 api", description = "물건 id를 받아서 입찰 목록을 보여준다.")
-    public ResponseEntity<BiddingPageResponse> findAllByProductId(@RequestParam long productId,
+    public ResponseEntity<BiddingPageResponse> findAllByProductId(@PathVariable long productId,
                                                             @PageableDefault(size = 20) Pageable pageable) {
         Page<Bidding> biddings =  biddingService.findAllByProductId(productId, pageable);
         BiddingPageResponse response = BiddingPageResponse.of(biddings);
