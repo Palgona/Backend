@@ -1,5 +1,10 @@
 package com.palgona.palgona.service;
 
+import static com.palgona.palgona.common.error.code.BiddingErrorCode.BIDDING_EXPIRED_PRODUCT;
+import static com.palgona.palgona.common.error.code.BiddingErrorCode.BIDDING_INSUFFICIENT_BID;
+import static com.palgona.palgona.common.error.code.BiddingErrorCode.BIDDING_LOWER_PRICE;
+
+import com.palgona.palgona.common.error.exception.BusinessException;
 import com.palgona.palgona.domain.bidding.Bidding;
 import com.palgona.palgona.domain.bidding.BiddingState;
 import com.palgona.palgona.domain.member.Member;
@@ -27,11 +32,26 @@ public class BiddingService {
     public void attemptBidding(Member member, BiddingAttemptRequest request) {
         Product product = productRepository.findById(request.productId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 product가 없습니다."));
+        int attemptPrice = request.price();
+
         if (product.isDeadlineReached()) {
-            throw new RuntimeException("이미 입찰 마감된 상품입니다.");
+            throw new BusinessException(BIDDING_EXPIRED_PRODUCT);
         }
 
-        Bidding bidding = Bidding.builder().member(member).product(product).price(request.price()).build();
+        int highestPrice = biddingRepository.findHighestPriceByProduct(product).orElse(0);
+
+        if (attemptPrice <= highestPrice) {
+            throw new BusinessException(BIDDING_LOWER_PRICE);
+        }
+
+        int threshold = (int) Math.pow(10, String.valueOf(attemptPrice).length() - 2);
+        int priceDifference = attemptPrice - highestPrice;
+
+        if (priceDifference < threshold) {
+            throw new BusinessException(BIDDING_INSUFFICIENT_BID);
+        }
+        
+        Bidding bidding = Bidding.builder().member(member).product(product).price(attemptPrice).build();
 
         biddingRepository.save(bidding);
     }
