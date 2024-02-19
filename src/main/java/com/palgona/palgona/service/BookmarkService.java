@@ -18,9 +18,17 @@ public class BookmarkService {
     public void createBookmark(Long productId, CustomMemberDetails memberDetails){
         Member member = memberDetails.getMember();
 
+        //1. 해당 상품이 존재하는지 확인
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException());
 
+        //2. 이미 추가된 찜인지 확인
+        bookmarkRepository.findByMemberAndProduct(member, product)
+                .ifPresent(b -> {
+                    throw new IllegalStateException("이미 추가된 상품입니다");
+                });
+
+        //3. 찜 추가
         Bookmark bookmark = Bookmark.builder()
                 .member(member)
                 .product(product)
@@ -32,6 +40,15 @@ public class BookmarkService {
     public void deleteBookmark(Long productId, CustomMemberDetails memberDetails){
         Member member = memberDetails.getMember();
 
-        bookmarkRepository.deleteByMemberAndProductId(member, productId);
+        //1. 해당 상품이 존재하는지 확인
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException());
+
+        //2. 해당 찜이 존재하는지 확인
+        Bookmark bookmark = bookmarkRepository.findByMemberAndProduct(member, product)
+                .orElseThrow(() -> new IllegalArgumentException());
+
+        //3. 찜 삭제
+        bookmarkRepository.delete(bookmark);
     }
 }
