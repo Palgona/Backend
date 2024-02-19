@@ -44,8 +44,8 @@ public class BiddingService {
             throw new BusinessException(BIDDING_LOWER_PRICE);
         }
 
-        int threshold = (int) Math.pow(10, String.valueOf(attemptPrice).length() - 1);
-        int priceDifference = highestPrice - attemptPrice;
+        int threshold = (int) Math.pow(10, String.valueOf(attemptPrice).length() - 2);
+        int priceDifference = attemptPrice - highestPrice;
 
         if (priceDifference < threshold) {
             throw new BusinessException(BIDDING_INSUFFICIENT_BID);
