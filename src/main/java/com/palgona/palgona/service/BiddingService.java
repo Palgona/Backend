@@ -27,11 +27,26 @@ public class BiddingService {
     public void attemptBidding(Member member, BiddingAttemptRequest request) {
         Product product = productRepository.findById(request.productId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 product가 없습니다."));
+        int attemptPrice = request.price();
+
         if (product.isDeadlineReached()) {
             throw new RuntimeException("이미 입찰 마감된 상품입니다.");
         }
 
-        Bidding bidding = Bidding.builder().member(member).product(product).price(request.price()).build();
+        int highestPrice = biddingRepository.findHighestPriceByProduct(product).orElse(0);
+
+        if (attemptPrice <= highestPrice) {
+            throw new RuntimeException("현재 가격이 기존 최고 가격보다 낮습니다.");
+        }
+
+        int threshold = (int) Math.pow(10, String.valueOf(attemptPrice).length() - 1);
+        int priceDifference = highestPrice - attemptPrice;
+
+        if (priceDifference < threshold) {
+            throw new RuntimeException("입찰가격과 기존 최고 가격의 차이가 최소 단위보다 작습니다.");
+        }
+        
+        Bidding bidding = Bidding.builder().member(member).product(product).price(attemptPrice).build();
 
         biddingRepository.save(bidding);
     }
