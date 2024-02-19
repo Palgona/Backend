@@ -49,7 +49,7 @@ public class LoginService {
         String imageUrl = s3Service.upload(image);
         member.updateNickName(nickName);
         member.updateProfileImage(imageUrl);
-
+        member.signUp();
         return member.getId();
     }
 
