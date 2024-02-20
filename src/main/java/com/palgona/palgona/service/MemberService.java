@@ -3,15 +3,17 @@ package com.palgona.palgona.service;
 import static com.palgona.palgona.common.error.code.MemberErrorCode.*;
 
 import com.palgona.palgona.common.dto.CustomMemberDetails;
+import com.palgona.palgona.common.dto.response.SliceResponse;
+import com.palgona.palgona.common.error.code.ErrorCode;
+import com.palgona.palgona.common.error.code.MemberErrorCode;
 import com.palgona.palgona.common.error.exception.BusinessException;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.dto.MemberDetailResponse;
 import com.palgona.palgona.dto.MemberResponse;
 import com.palgona.palgona.dto.MemberUpdateRequest;
-import com.palgona.palgona.repository.MemberRepository;
+import com.palgona.palgona.repository.member.MemberRepository;
 import com.palgona.palgona.service.image.S3Service;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,9 +39,15 @@ public class MemberService {
         return MemberResponse.from(member);
     }
 
-    public Slice<MemberResponse> findAllMember(Pageable pageable) {
-        return memberRepository.findAllByOrderById(pageable)
-                .map(MemberResponse::from);
+    public SliceResponse<MemberResponse> findAllMember(CustomMemberDetails adminMember, String cursor) {
+        validateAdmin(adminMember.getMember());
+        return memberRepository.findAllOrderByIdDesc(cursor);
+    }
+
+    private void validateAdmin(Member adminMember) {
+        if (!adminMember.isAdmin()) {
+            throw new BusinessException(ADMIN_PERMISSION_DENIED);
+        }
     }
 
     @Transactional

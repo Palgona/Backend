@@ -2,7 +2,7 @@ package com.palgona.palgona.config;
 
 import com.palgona.palgona.common.jwt.filter.JwtAuthenticationFilter;
 import com.palgona.palgona.common.jwt.util.JwtUtils;
-import com.palgona.palgona.repository.MemberRepository;
+import com.palgona.palgona.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

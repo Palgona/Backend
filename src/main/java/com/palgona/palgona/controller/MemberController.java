@@ -1,24 +1,21 @@
 package com.palgona.palgona.controller;
 
 import com.palgona.palgona.common.dto.CustomMemberDetails;
+import com.palgona.palgona.common.dto.response.SliceResponse;
 import com.palgona.palgona.dto.MemberDetailResponse;
 import com.palgona.palgona.dto.MemberResponse;
 import com.palgona.palgona.dto.MemberUpdateRequest;
 import com.palgona.palgona.dto.MemberUpdateRequestWithoutImage;
 import com.palgona.palgona.service.MemberService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,10 +46,11 @@ public class MemberController {
     }
 
     @GetMapping
-    public ResponseEntity<Slice<MemberResponse>> findAll(
-            @PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<SliceResponse<MemberResponse>> findAll(
+            @AuthenticationPrincipal CustomMemberDetails member,
+            @RequestParam(required = false) String cursor) {
 
-        Slice<MemberResponse> response = memberService.findAllMember(pageable);
+        SliceResponse<MemberResponse> response = memberService.findAllMember(member, cursor);
         return ResponseEntity.ok(response);
     }
 
