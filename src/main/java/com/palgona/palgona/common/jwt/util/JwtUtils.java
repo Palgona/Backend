@@ -1,5 +1,9 @@
 package com.palgona.palgona.common.jwt.util;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -54,7 +58,7 @@ public class JwtUtils {
                 .get(CLAIM, String.class));
     }
 
-    public Boolean isValid(String token) {
+    public Boolean isExpired(String token) {
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()

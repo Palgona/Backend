@@ -4,8 +4,6 @@ import static com.palgona.palgona.common.error.code.MemberErrorCode.*;
 
 import com.palgona.palgona.common.dto.CustomMemberDetails;
 import com.palgona.palgona.common.dto.response.SliceResponse;
-import com.palgona.palgona.common.error.code.ErrorCode;
-import com.palgona.palgona.common.error.code.MemberErrorCode;
 import com.palgona.palgona.common.error.exception.BusinessException;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.dto.MemberDetailResponse;
@@ -14,7 +12,6 @@ import com.palgona.palgona.dto.MemberUpdateRequest;
 import com.palgona.palgona.repository.member.MemberRepository;
 import com.palgona.palgona.service.image.S3Service;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,20 +31,13 @@ public class MemberService {
 
     public MemberResponse findById(Long id) {
         Member member = memberRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(MEMBER_NOT_EXIST));
 
         return MemberResponse.from(member);
     }
 
-    public SliceResponse<MemberResponse> findAllMember(CustomMemberDetails adminMember, String cursor) {
-        validateAdmin(adminMember.getMember());
+    public SliceResponse<MemberResponse> findAllMember(String cursor) {
         return memberRepository.findAllOrderByIdDesc(cursor);
-    }
-
-    private void validateAdmin(Member adminMember) {
-        if (!adminMember.isAdmin()) {
-            throw new BusinessException(ADMIN_PERMISSION_DENIED);
-        }
     }
 
     @Transactional
@@ -57,7 +47,7 @@ public class MemberService {
 
         String socialId = loginMember.getUsername();
         Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new IllegalArgumentException("member not found"));
+                .orElseThrow(() -> new BusinessException(MEMBER_NOT_FOUND));
 
         s3Service.deleteFile(member.getProfileImage());
         String imageUrl = s3Service.upload(memberUpdateRequest.image());
