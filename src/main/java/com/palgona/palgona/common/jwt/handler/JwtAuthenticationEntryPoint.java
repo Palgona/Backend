@@ -1,7 +1,7 @@
 package com.palgona.palgona.common.jwt.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.palgona.palgona.common.error.code.AuthErrorCode;
+import com.palgona.palgona.common.error.code.ErrorCode;
 import com.palgona.palgona.common.error.dto.response.ErrorResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
 
-        AuthErrorCode errorCode = (AuthErrorCode) request.getAttribute(EXCEPTION);
+        log.info("유저 인증에 실패했습니다.");
+        ErrorCode errorCode = (ErrorCode) request.getAttribute(EXCEPTION);
         ErrorResponse errorResponse = ErrorResponse.from(errorCode);
         setResponse(response, errorResponse);
     }
