@@ -1,6 +1,7 @@
 package com.palgona.palgona.service;
 
 import com.palgona.palgona.common.dto.CustomMemberDetails;
+import com.palgona.palgona.common.error.exception.BusinessException;
 import com.palgona.palgona.domain.bookmark.Bookmark;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.domain.product.Product;
@@ -8,6 +9,8 @@ import com.palgona.palgona.repository.BookmarkRepository;
 import com.palgona.palgona.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import static com.palgona.palgona.common.error.code.BookmarkErrorCode.BOOKMARK_EXISTS;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +28,7 @@ public class BookmarkService {
         //2. 이미 추가된 찜인지 확인
         bookmarkRepository.findByMemberAndProduct(member, product)
                 .ifPresent(b -> {
-                    throw new IllegalStateException("이미 추가된 상품입니다");
+                    throw new BusinessException(BOOKMARK_EXISTS);
                 });
 
         //3. 찜 추가
