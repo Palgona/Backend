@@ -45,4 +45,10 @@ public class MileageHistoryService {
 
         mileageHistoryRepository.save(mileageHistory);
     }
+
+    public int readMileage(CustomMemberDetails memberDetails){
+        Member member = memberDetails.getMember();
+
+        return member.getMileage();
+    }
 }
