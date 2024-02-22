@@ -1,6 +1,7 @@
 package com.palgona.palgona.service;
 
 import com.palgona.palgona.common.dto.CustomMemberDetails;
+import com.palgona.palgona.common.error.exception.BusinessException;
 import com.palgona.palgona.domain.bidding.Bidding;
 import com.palgona.palgona.domain.image.Image;
 import com.palgona.palgona.domain.member.Member;
@@ -24,6 +25,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.palgona.palgona.common.error.code.ProductErrorCode.INSUFFICIENT_PERMISSION;
+import static com.palgona.palgona.common.error.code.ProductErrorCode.RELATED_BIDDING_EXISTS;
 
 @RequiredArgsConstructor
 @Service
@@ -186,13 +190,13 @@ public class ProductService {
 
     private void checkRelatedBidding(Product product){
         if (biddingRepository.existsByProduct(product)) {
-            throw new IllegalStateException("해당 상품과 관련된 입찰 내역이 있어 변경할 수 없습니다.");
+            throw new BusinessException(RELATED_BIDDING_EXISTS);
         }
     }
 
     private void checkPermission(Member member, Product product) {
         if (!(product.isOwner(member) || member.isAdmin())) {
-            throw new IllegalStateException("해당 상품에 대한 권한이 없습니다.");
+            throw new BusinessException(INSUFFICIENT_PERMISSION);
         }
     }
 
