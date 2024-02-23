@@ -1,11 +1,14 @@
 package com.palgona.palgona.service;
 
 
+import static com.palgona.palgona.common.error.code.AuthErrorCode.*;
+import static com.palgona.palgona.common.error.code.MemberErrorCode.*;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palgona.palgona.common.dto.CustomMemberDetails;
+import com.palgona.palgona.common.error.exception.BusinessException;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.domain.member.Role;
 import com.palgona.palgona.domain.member.Status;
@@ -49,7 +52,7 @@ public class LoginService {
         String imageUrl = s3Service.upload(image);
         member.updateNickName(nickName);
         member.updateProfileImage(imageUrl);
-
+        member.signUp();
         return member.getId();
     }
 
@@ -72,12 +75,17 @@ public class LoginService {
 
     private KakaoUserInfoResponse getKakaoUserInfo(String accessToken) {
         HttpEntity<MultiValueMap<String, String>> kakaoUserInfoRequest = getKakaoRequest(accessToken);
-        ResponseEntity<String> kakaoResponse = restTemplate.exchange(
-                "https://kapi.kakao.com/v2/user/me",
-                HttpMethod.GET,
-                kakaoUserInfoRequest,
-                String.class
-        );
+        ResponseEntity<String> kakaoResponse = null;
+        try {
+            kakaoResponse = restTemplate.exchange(
+                    "https://kapi.kakao.com/v2/user/me",
+                    HttpMethod.GET,
+                    kakaoUserInfoRequest,
+                    String.class
+            );
+        } catch (Exception e) {
+            throw new BusinessException(ILLEGAL_KAKAO_TOKEN);
+        }
 
         KakaoUserInfoResponse kakaoUserInfoResponse = parseKakaoInfo(kakaoResponse);
 
@@ -115,25 +123,25 @@ public class LoginService {
 
     private void validateToken(String token) {
         if (token == null || !token.toLowerCase().startsWith(BEARER.toLowerCase())) {
-            throw new IllegalArgumentException("invalid kakao Access Token");
+            throw new BusinessException(ILLEGAL_KAKAO_TOKEN);
         }
     }
 
     private void validateRoleOfMember(Member member) {
         if (!member.isGuest()) {
-            throw new IllegalStateException("already signUp");
+            throw new BusinessException(ALREADY_SIGNED_UP);
         }
     }
 
     private void validateNameDuplicated(String nickName) {
         if (memberRepository.existsByNickName(nickName)) {
-            throw new IllegalArgumentException("nickName is duplicated");
+            throw new BusinessException(DUPLICATE_NAME);
         }
     }
 
     private Member findMemberBySocialId(CustomMemberDetails loginMember) {
         String socialId = loginMember.getUsername();
         return memberRepository.findBySocialId(socialId).orElseThrow(
-                () -> new IllegalArgumentException("user is not exist"));
+                () -> new BusinessException(MEMBER_NOT_FOUND));
     }
 }

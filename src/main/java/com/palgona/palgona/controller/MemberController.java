@@ -47,10 +47,9 @@ public class MemberController {
 
     @GetMapping
     public ResponseEntity<SliceResponse<MemberResponse>> findAll(
-            @AuthenticationPrincipal CustomMemberDetails member,
             @RequestParam(required = false) String cursor) {
 
-        SliceResponse<MemberResponse> response = memberService.findAllMember(member, cursor);
+        SliceResponse<MemberResponse> response = memberService.findAllMember(cursor);
         return ResponseEntity.ok(response);
     }
 
@@ -58,7 +57,7 @@ public class MemberController {
     public ResponseEntity<Void> update(
             @AuthenticationPrincipal CustomMemberDetails member,
             @RequestPart MemberUpdateRequestWithoutImage request,
-            @RequestPart(required = false) MultipartFile image
+            @RequestPart MultipartFile image
     ) {
 
         MemberUpdateRequest memberUpdateRequest = MemberUpdateRequest.of(request, image);

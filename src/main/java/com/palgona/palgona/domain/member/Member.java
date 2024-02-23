@@ -69,4 +69,8 @@ public class Member extends BaseTimeEntity {
     public void updateProfileImage(String imageUrl) {
         this.profileImage = imageUrl;
     }
+
+    public void signUp() {
+        this.role = Role.USER;
+    }
 }
