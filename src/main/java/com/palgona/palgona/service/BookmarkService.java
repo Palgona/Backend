@@ -6,9 +6,10 @@ import com.palgona.palgona.domain.bookmark.Bookmark;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.domain.product.Product;
 import com.palgona.palgona.repository.BookmarkRepository;
-import com.palgona.palgona.repository.ProductRepository;
+import com.palgona.palgona.repository.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.palgona.palgona.common.error.code.BookmarkErrorCode.BOOKMARK_EXISTS;
 
@@ -18,6 +19,7 @@ public class BookmarkService {
     private final BookmarkRepository bookmarkRepository;
     private final ProductRepository productRepository;
 
+    @Transactional
     public void createBookmark(Long productId, CustomMemberDetails memberDetails){
         Member member = memberDetails.getMember();
 
@@ -37,9 +39,11 @@ public class BookmarkService {
                 .product(product)
                 .build();
 
+        product.addBookmark();
         bookmarkRepository.save(bookmark);
     }
 
+    @Transactional
     public void deleteBookmark(Long productId, CustomMemberDetails memberDetails){
         Member member = memberDetails.getMember();
 
@@ -52,6 +56,7 @@ public class BookmarkService {
                 .orElseThrow(() -> new IllegalArgumentException());
 
         //3. 찜 삭제
+        product.removeBookmark();
         bookmarkRepository.delete(bookmark);
     }
 }

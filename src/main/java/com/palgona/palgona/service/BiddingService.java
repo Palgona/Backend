@@ -11,7 +11,7 @@ import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.domain.product.Product;
 import com.palgona.palgona.dto.BiddingAttemptRequest;
 import com.palgona.palgona.repository.BiddingRepository;
-import com.palgona.palgona.repository.ProductRepository;
+import com.palgona.palgona.repository.product.ProductRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -52,6 +52,7 @@ public class BiddingService {
         }
         
         Bidding bidding = Bidding.builder().member(member).product(product).price(attemptPrice).build();
+        product.updateBid(attemptPrice);
 
         biddingRepository.save(bidding);
     }
