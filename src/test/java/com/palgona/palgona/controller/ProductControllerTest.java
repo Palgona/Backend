@@ -1,18 +1,14 @@
 package com.palgona.palgona.controller;
 
 import static org.apache.http.HttpHeaders.AUTHORIZATION;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import com.palgona.palgona.common.dto.response.SliceResponse;
 import com.palgona.palgona.common.jwt.util.JwtUtils;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.domain.member.Role;
 import com.palgona.palgona.domain.member.Status;
-import com.palgona.palgona.domain.product.Category;
-import com.palgona.palgona.domain.product.Product;
-import com.palgona.palgona.domain.product.ProductState;
 import com.palgona.palgona.domain.product.SortType;
 import com.palgona.palgona.dto.response.ProductPageResponse;
 import com.palgona.palgona.repository.member.MemberRepository;
@@ -21,8 +17,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,8 +25,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -69,7 +61,7 @@ class ProductControllerTest {
                                 "qwer.png"
                         ),
                         new ProductPageResponse(
-                                1L,
+                                2L,
                                 "상품",
                                 1000,
                                 1,
@@ -82,6 +74,8 @@ class ProductControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/products")
                 .header(AUTHORIZATION, "BEARER " + jwtUtils.createAccessToken("100")))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.values[0].id").value(1))
+                .andExpect(jsonPath("$.values[1].id").value(2));
     }
 }
