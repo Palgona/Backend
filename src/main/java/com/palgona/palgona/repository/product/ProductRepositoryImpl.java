@@ -73,6 +73,10 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
         }
 
         boolean hasNext = existNextPage(products, pageSize);
+        if (hasNext) {
+            deleteLastPage(products, pageSize);
+        }
+
         String nextCursor = generateCursor(products, sortType);
         return SliceResponse.of(products, hasNext, nextCursor);
     }
@@ -91,12 +95,14 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     }
 
     private boolean existNextPage(List<ProductPageResponse> products, int pageSize) {
-        if (products.size() > pageSize) {
-            products.remove(pageSize);
+        if (products.size() > pageSize){
             return true;
         }
-
         return false;
+    }
+
+    private void deleteLastPage(List<ProductPageResponse> products, int pageSize) {
+        products.remove(pageSize);
     }
 
     private BooleanExpression isInSearchRange(String cursor, SortType sortType) {
