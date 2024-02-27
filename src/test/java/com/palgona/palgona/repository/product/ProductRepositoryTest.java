@@ -60,7 +60,7 @@ class ProductRepositoryTest {
                 product.addBookmark();
             }
 
-            product.updateBid(i*1000);
+            product.updateCurrentBid(i*1000);
             product = productRepository.save(product);
 
             Image image1 = Image.builder()
@@ -136,7 +136,7 @@ class ProductRepositoryTest {
 
         assertThat(response1.hasNext()).isTrue();
         assertThat(response1.values().size()).isEqualTo(3);
-        assertThat(response1.values().get(0).bid()).isEqualTo(4000);
+        assertThat(response1.values().get(0).currentBid()).isEqualTo(4000);
 
         String cursor = response1.cursor();
 
@@ -145,8 +145,8 @@ class ProductRepositoryTest {
 
         assertThat(response2.hasNext()).isFalse();
         assertThat(response2.values().size()).isEqualTo(2);
-        assertThat(response2.values().get(0).bid()).isEqualTo(1000);
-        assertThat(response2.values().get(1).bid()).isEqualTo(0);
+        assertThat(response2.values().get(0).currentBid()).isEqualTo(1000);
+        assertThat(response2.values().get(1).currentBid()).isEqualTo(0);
     }
 
     @Test
@@ -156,7 +156,7 @@ class ProductRepositoryTest {
 
         assertThat(response1.hasNext()).isTrue();
         assertThat(response1.values().size()).isEqualTo(3);
-        assertThat(response1.values().get(0).bid()).isEqualTo(0);
+        assertThat(response1.values().get(0).currentBid()).isEqualTo(0);
 
         String cursor = response1.cursor();
 
@@ -165,8 +165,8 @@ class ProductRepositoryTest {
 
         assertThat(response2.hasNext()).isFalse();
         assertThat(response2.values().size()).isEqualTo(2);
-        assertThat(response2.values().get(0).bid()).isEqualTo(3000);
-        assertThat(response2.values().get(1).bid()).isEqualTo(4000);
+        assertThat(response2.values().get(0).currentBid()).isEqualTo(3000);
+        assertThat(response2.values().get(1).currentBid()).isEqualTo(4000);
     }
 
     @Test

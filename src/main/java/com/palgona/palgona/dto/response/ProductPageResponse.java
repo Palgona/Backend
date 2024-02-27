@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 public record ProductPageResponse(
         Long id,
         String name,
-        int bid,
+        int currentBid,
         int bookmarkCount,
         LocalDateTime deadline,
         LocalDateTime created_at,
@@ -17,7 +17,7 @@ public record ProductPageResponse(
         return new ProductPageResponse(
                 product.getId(),
                 product.getName(),
-                product.getBid(),
+                product.getCurrentBid(),
                 product.getBookmarkCount(),
                 product.getDeadline(),
                 product.getCreatedAt(),

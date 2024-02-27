@@ -1,7 +1,6 @@
 package com.palgona.palgona.domain.product;
 
 import com.palgona.palgona.common.entity.BaseTimeEntity;
-import com.palgona.palgona.domain.bidding.Bidding;
 import com.palgona.palgona.domain.member.Member;
 import jakarta.persistence.*;
 
@@ -48,7 +47,7 @@ public class Product extends BaseTimeEntity {
 
     private int bookmarkCount;
 
-    private int bid;
+    private int currentBid;
 
     @Builder
     public Product(
@@ -66,7 +65,7 @@ public class Product extends BaseTimeEntity {
         this.deadline = deadline;
         this.productState = productState;
         this.member = member;
-        this.bid = 0;
+        this.currentBid = 0;
     }
 
     public void updateName(String name) {
@@ -91,8 +90,8 @@ public class Product extends BaseTimeEntity {
 
     public void updateProductState(ProductState productState) {this.productState = productState;}
 
-    public void updateBid(int bid) {
-        this.bid = bid;
+    public void updateCurrentBid(int bid) {
+        this.currentBid = bid;
     }
 
     public boolean isDeadlineReached() {

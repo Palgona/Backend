@@ -82,7 +82,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
 
         return switch (sortType) {
             case DEADLINE -> String.valueOf(lastProduct.deadline());
-            case HIGHEST_PRICE, LOWEST_PRICE -> String.format("%09d", lastProduct.bid())
+            case HIGHEST_PRICE, LOWEST_PRICE -> String.format("%09d", lastProduct.currentBid())
                     + String.format("%08d", lastProduct.id());
             case BOOK_MARK -> String.format("%06d", lastProduct.bookmarkCount())
                     + String.format("%08d", lastProduct.id());
@@ -106,10 +106,10 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
 
         return switch (sortType) {
             case DEADLINE -> product.deadline.before(LocalDateTime.parse(cursor, DateTimeFormatter.ISO_DATE_TIME));
-            case HIGHEST_PRICE -> StringExpressions.lpad(product.bid.stringValue(), MAX_PRICE_DIGIT, '0')
+            case HIGHEST_PRICE -> StringExpressions.lpad(product.currentBid.stringValue(), MAX_PRICE_DIGIT, '0')
                     .concat(StringExpressions.lpad(product.id.stringValue(), MAX_ID_DIGIT, '0'))
                     .lt(cursor);
-            case LOWEST_PRICE -> StringExpressions.lpad(product.bid.stringValue(), MAX_PRICE_DIGIT, '0')
+            case LOWEST_PRICE -> StringExpressions.lpad(product.currentBid.stringValue(), MAX_PRICE_DIGIT, '0')
                     .concat(StringExpressions.lpad(product.id.stringValue(), MAX_ID_DIGIT, '0'))
                     .gt(cursor);
             case BOOK_MARK -> StringExpressions.lpad(product.bookmarkCount.stringValue(), MAX_BOOKMARK_DIGIT, '0')
@@ -122,8 +122,8 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     private OrderSpecifier createOrderSpecifier(SortType sortType) {
         return switch (sortType) {
             case DEADLINE -> new OrderSpecifier<>(Order.DESC, product.deadline);
-            case HIGHEST_PRICE -> new OrderSpecifier<>(Order.DESC, product.bid);
-            case LOWEST_PRICE -> new OrderSpecifier<>(Order.ASC, product.bid);
+            case HIGHEST_PRICE -> new OrderSpecifier<>(Order.DESC, product.currentBid);
+            case LOWEST_PRICE -> new OrderSpecifier<>(Order.ASC, product.currentBid);
             case BOOK_MARK -> new OrderSpecifier<>(Order.DESC, product.bookmarkCount);
             default -> new OrderSpecifier<>(Order.DESC, product.id);
         };
