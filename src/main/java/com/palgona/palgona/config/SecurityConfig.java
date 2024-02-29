@@ -4,11 +4,13 @@ import com.palgona.palgona.common.jwt.filter.JwtAuthenticationFilter;
 import com.palgona.palgona.common.jwt.handler.JwtAccessDeniedHandler;
 import com.palgona.palgona.common.jwt.handler.JwtAuthenticationEntryPoint;
 import com.palgona.palgona.common.jwt.util.JwtUtils;
+import com.palgona.palgona.common.redis.RedisUtils;
 import com.palgona.palgona.repository.member.MemberRepository;
 import com.palgona.palgona.common.jwt.util.TokenExtractor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,6 +34,7 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final TokenExtractor tokenExtractor;
+    private final RedisUtils redisUtils;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -47,13 +50,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/login").permitAll()
                         .requestMatchers("/api/v1/auth/signup").hasRole(GUEST)
+                        .requestMatchers("api/v1/auth/logout", "api/v1/auth/refresh-token").hasRole(USER)
                         .requestMatchers("/v3/**", "swagger-ui/**").permitAll()
-                        .requestMatchers("/api/v1/members").hasRole(ADMIN)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/members").hasRole(ADMIN)
                         .requestMatchers("/api/v1/members/**").hasRole(USER)
                         .requestMatchers("/api/v1/products/**").hasRole(USER)
                         .requestMatchers("/api/v1/biddings/**").hasRole(USER)
                         .anyRequest().authenticated())
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtils, memberRepository, tokenExtractor),
+                .addFilterBefore(new JwtAuthenticationFilter(jwtUtils, memberRepository, tokenExtractor, redisUtils),
                         UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
