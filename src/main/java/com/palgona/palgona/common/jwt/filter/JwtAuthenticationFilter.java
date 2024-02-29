@@ -4,6 +4,7 @@ import com.palgona.palgona.common.dto.CustomMemberDetails;
 import com.palgona.palgona.common.error.code.AuthErrorCode;
 import com.palgona.palgona.common.jwt.util.JwtUtils;
 import com.palgona.palgona.common.jwt.util.TokenExtractor;
+import com.palgona.palgona.common.redis.RedisUtils;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.repository.member.MemberRepository;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -33,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
     private final MemberRepository memberRepository;
     private final TokenExtractor tokenExtractor;
+    private final RedisUtils redisUtils;
 
     private GrantedAuthoritiesMapper authoritiesMapper = new NullAuthoritiesMapper();
 
@@ -48,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void authenticate(HttpServletRequest request) {
         try {
             String accessToken = tokenExtractor.extractAccessToken(request);
-            if (!jwtUtils.isExpired(accessToken)) {
+            if (!jwtUtils.isExpired(accessToken) || !redisUtils.isBlacklist(accessToken)) {
                 String socialId = jwtUtils.extractSocialId(accessToken)
                         .orElseThrow(() -> new IllegalArgumentException());
                 Member member = memberRepository.findBySocialId(socialId)

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palgona.palgona.common.dto.CustomMemberDetails;
 import com.palgona.palgona.common.error.exception.BusinessException;
+import com.palgona.palgona.common.redis.RedisUtils;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.domain.member.Role;
 import com.palgona.palgona.domain.member.Status;
@@ -20,6 +21,7 @@ import com.palgona.palgona.service.image.S3Service;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -38,9 +40,13 @@ public class LoginService {
 
     private static final String BEARER = "Bearer ";
 
+    @Value("${spring.jwt.access.expireMs}")
+    private Long accessExpirationTime;
+
     private final MemberRepository memberRepository;
     private final S3Service s3Service;
     private final RestTemplate restTemplate;
+    private final RedisUtils redisUtils;
 
     public Long signUp(CustomMemberDetails loginMember, MemberCreateRequest memberCreateRequest) {
         Member member = findMemberBySocialId(loginMember);
@@ -71,6 +77,10 @@ public class LoginService {
                 });
 
         return LoginResponse.from(findMember);
+    }
+
+    public void logout(String accessToken) {
+        redisUtils.setBlacklist(accessToken, accessExpirationTime);
     }
 
     private KakaoUserInfoResponse getKakaoUserInfo(String accessToken) {
