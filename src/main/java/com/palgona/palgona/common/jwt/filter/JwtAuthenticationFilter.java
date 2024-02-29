@@ -50,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void authenticate(HttpServletRequest request) {
         try {
             String accessToken = tokenExtractor.extractAccessToken(request);
-            if (!jwtUtils.isExpired(accessToken) || !redisUtils.isBlacklist(accessToken)) {
+            if (!jwtUtils.isExpired(accessToken) && !redisUtils.isBlacklist(accessToken)) {
                 String socialId = jwtUtils.extractSocialId(accessToken)
                         .orElseThrow(() -> new IllegalArgumentException());
                 Member member = memberRepository.findBySocialId(socialId)
