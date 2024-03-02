@@ -1,20 +1,27 @@
 package com.palgona.palgona.repository.product;
 
+import static com.palgona.palgona.domain.bidding.QBidding.bidding;
+import static com.palgona.palgona.domain.bookmark.QBookmark.bookmark;
+import static com.palgona.palgona.domain.image.QImage.image;
 import static com.palgona.palgona.domain.product.QProduct.product;
+import static com.palgona.palgona.domain.product.QProductImage.productImage;
 
 import com.palgona.palgona.common.dto.response.SliceResponse;
 import com.palgona.palgona.domain.product.Category;
-import com.palgona.palgona.domain.product.Product;
 import com.palgona.palgona.domain.product.SortType;
 import com.palgona.palgona.dto.response.ProductPageResponse;
+import com.palgona.palgona.repository.product.querydto.ImageQueryResponse;
+import com.palgona.palgona.repository.product.querydto.ProductQueryResponse;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.StringExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
@@ -35,17 +42,60 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
             SortType sortType,
             int pageSize) {
 
-        List<Product> products = queryFactory.selectFrom(product)
-                .where(contains(searchWord), categoryEq(category), isInSearchRange(cursor, sortType))
+        List<ProductQueryResponse> productQueryResponses = queryFactory.select(Projections.constructor(
+                ProductQueryResponse.class,
+                        product.id,
+                        product.name,
+                        bidding.price.max().coalesce(0),
+                        bookmark.countDistinct().intValue().coalesce(0),
+                        product.deadline,
+                        product.createdAt
+                ))
+                .from(product)
+                .leftJoin(bidding).on(bidding.product.id.eq(product.id))
+                .leftJoin(bookmark).on(bookmark.product.id.eq(product.id))
+                .where(contains(searchWord), categoryEq(category))
+                .groupBy(product.id)
+                .having(isInSearchRange(cursor, sortType))
                 .orderBy(createOrderSpecifier(sortType))
                 .limit(pageSize + 1)
                 .fetch();
 
-        List<ProductPageResponse> productResponses = products.stream()
-                .map(ProductPageResponse::from)
-                .collect(Collectors.toList());
+        List<ImageQueryResponse> imageQueryResponses = queryFactory.select(Projections.constructor(
+                ImageQueryResponse.class,
+                        product.id,
+                        image.imageId,
+                        image.imageUrl))
+                .from(productImage)
+                .join(productImage.image, image)
+                .where(productImage.product.id.in(toProductIds(productQueryResponses)))
+                .fetch();
+
+        Map<Long, List<ImageQueryResponse>> result = imageQueryResponses.stream()
+                .collect(Collectors.groupingBy(ImageQueryResponse::productId));
+
+        List<ProductPageResponse> productResponses = productQueryResponses.stream()
+                .map(response -> {
+                    List<ImageQueryResponse> images = result.get(response.id());
+                    Long minId = Long.MAX_VALUE;
+                    String imageUrl = null;
+                    for (ImageQueryResponse image : images) {
+                        if (minId > image.imageId()) {
+                            minId = image.imageId();
+                            imageUrl = image.imageUrl();
+                        }
+                    }
+
+                    return ProductPageResponse.of(response, imageUrl);
+                }).collect(Collectors.toList());
 
         return convertToSlice(productResponses, sortType, pageSize);
+    }
+
+    private List<Long> toProductIds(List<ProductQueryResponse> productResponses) {
+        return productResponses.stream()
+                .map(ProductQueryResponse::id)
+                .toList();
     }
 
     private BooleanExpression categoryEq(Category category) {
@@ -112,14 +162,14 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
 
         return switch (sortType) {
             case DEADLINE -> product.deadline.before(LocalDateTime.parse(cursor, DateTimeFormatter.ISO_DATE_TIME));
-            case HIGHEST_PRICE -> StringExpressions.lpad(product.currentBid.stringValue(), MAX_PRICE_DIGIT, '0')
+            case HIGHEST_PRICE -> StringExpressions.lpad(bidding.price.max().stringValue(), MAX_PRICE_DIGIT, '0')
                     .concat(StringExpressions.lpad(product.id.stringValue(), MAX_ID_DIGIT, '0'))
                     .lt(cursor);
-            case LOWEST_PRICE -> StringExpressions.lpad(product.currentBid.stringValue(), MAX_PRICE_DIGIT, '0')
+            case LOWEST_PRICE -> StringExpressions.lpad(bidding.price.max().stringValue(), MAX_PRICE_DIGIT, '0')
                     .concat(StringExpressions.lpad(product.id.stringValue(), MAX_ID_DIGIT, '0'))
                     .gt(cursor);
-            case BOOK_MARK -> StringExpressions.lpad(product.bookmarkCount.stringValue(), MAX_BOOKMARK_DIGIT, '0')
-                    .concat(StringExpressions.lpad(product.id.stringValue(), MAX_BOOKMARK_DIGIT, '0'))
+            case BOOK_MARK -> StringExpressions.lpad(bookmark.countDistinct().stringValue(), MAX_BOOKMARK_DIGIT, '0')
+                    .concat(StringExpressions.lpad(product.id.stringValue(), MAX_ID_DIGIT, '0'))
                     .lt(cursor);
             default -> product.id.lt(Long.valueOf(cursor));
         };
@@ -128,9 +178,9 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     private OrderSpecifier createOrderSpecifier(SortType sortType) {
         return switch (sortType) {
             case DEADLINE -> new OrderSpecifier<>(Order.DESC, product.deadline);
-            case HIGHEST_PRICE -> new OrderSpecifier<>(Order.DESC, product.currentBid);
-            case LOWEST_PRICE -> new OrderSpecifier<>(Order.ASC, product.currentBid);
-            case BOOK_MARK -> new OrderSpecifier<>(Order.DESC, product.bookmarkCount);
+            case HIGHEST_PRICE -> new OrderSpecifier<>(Order.DESC, bidding.price.max());
+            case LOWEST_PRICE -> new OrderSpecifier<>(Order.ASC, bidding.price.max());
+            case BOOK_MARK -> new OrderSpecifier<>(Order.DESC, bookmark.countDistinct());
             default -> new OrderSpecifier<>(Order.DESC, product.id);
         };
     }

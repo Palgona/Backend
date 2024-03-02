@@ -1,6 +1,7 @@
 package com.palgona.palgona.dto.response;
 
 import com.palgona.palgona.domain.product.Product;
+import com.palgona.palgona.repository.product.querydto.ProductQueryResponse;
 import java.time.LocalDateTime;
 
 public record ProductPageResponse(
@@ -13,15 +14,15 @@ public record ProductPageResponse(
         String imageUrl
 ) {
 
-    public static ProductPageResponse from(Product product) {
+    public static ProductPageResponse of(ProductQueryResponse queryResponse, String imageUrl) {
         return new ProductPageResponse(
-                product.getId(),
-                product.getName(),
-                product.getCurrentBid(),
-                product.getBookmarkCount(),
-                product.getDeadline(),
-                product.getCreatedAt(),
-                product.getProductImages().get(0).getImage().getImageUrl()
+                queryResponse.id(),
+                queryResponse.name(),
+                queryResponse.currentBid(),
+                queryResponse.bookmarkCount(),
+                queryResponse.deadline(),
+                queryResponse.createdAt(),
+                imageUrl
         );
     }
 }
