@@ -5,6 +5,7 @@ import com.palgona.palgona.dto.ProductCreateRequest;
 import com.palgona.palgona.dto.ProductResponse;
 import com.palgona.palgona.dto.ProductUpdateRequest;
 import com.palgona.palgona.service.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    @Operation(summary = "상품 등록 api", description = "상품 정보와 상품 사진들을 받아서 상품 등록을 진행한다.")
     public ResponseEntity<Void> createProduct(
             @RequestPart(value = "productReq") ProductCreateRequest request,
             @RequestPart(value = "files") List<MultipartFile> files,
@@ -36,6 +38,7 @@ public class ProductController {
     }
 
     @GetMapping("/{productId}")
+    @Operation(summary = "상품 상세 조회 api", description = "상품 id를 받아 상품 상세 정보를 보여준다.")
     public ResponseEntity<ProductResponse> readProduct(@PathVariable Long productId){
         ProductResponse productResponse = productService.readProduct(productId);
 
@@ -44,6 +47,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{productId}")
+    @Operation(summary = "상품 삭제 api", description = "상품 id를 받아 해당 상품 삭제 처리를 진행한다. ")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long productId, @AuthenticationPrincipal CustomMemberDetails member){
 
         productService.deleteProduct(productId, member);
@@ -54,6 +58,7 @@ public class ProductController {
     @PutMapping(
             value = "/{productId}",
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    @Operation(summary = "상품 수정 api", description = "상품 id를 받아 해당 상품 수정 처리를 진행한다.")
     public ResponseEntity<Void> updateProduct(
             @PathVariable Long productId,
             @RequestPart(value = "productReq") ProductUpdateRequest request,
