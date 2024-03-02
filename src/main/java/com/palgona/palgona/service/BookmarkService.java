@@ -19,7 +19,6 @@ public class BookmarkService {
     private final BookmarkRepository bookmarkRepository;
     private final ProductRepository productRepository;
 
-    @Transactional
     public void createBookmark(Long productId, CustomMemberDetails memberDetails){
         Member member = memberDetails.getMember();
 
@@ -42,7 +41,6 @@ public class BookmarkService {
         bookmarkRepository.save(bookmark);
     }
 
-    @Transactional
     public void deleteBookmark(Long productId, CustomMemberDetails memberDetails){
         Member member = memberDetails.getMember();
 
