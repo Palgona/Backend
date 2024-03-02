@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palgona.palgona.common.RepositoryTest;
 import com.palgona.palgona.common.dto.response.SliceResponse;
+import com.palgona.palgona.domain.bidding.Bidding;
+import com.palgona.palgona.domain.bookmark.Bookmark;
 import com.palgona.palgona.domain.image.Image;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.domain.member.Role;
@@ -14,6 +16,8 @@ import com.palgona.palgona.domain.product.ProductImage;
 import com.palgona.palgona.domain.product.ProductState;
 import com.palgona.palgona.domain.product.SortType;
 import com.palgona.palgona.dto.response.ProductPageResponse;
+import com.palgona.palgona.repository.BiddingRepository;
+import com.palgona.palgona.repository.BookmarkRepository;
 import com.palgona.palgona.repository.ImageRepository;
 import com.palgona.palgona.repository.ProductImageRepository;
 import com.palgona.palgona.repository.member.MemberRepository;
@@ -41,27 +45,47 @@ class ProductRepositoryTest {
     @Autowired
     ProductImageRepository productImageRepository;
 
+    @Autowired
+    BookmarkRepository bookmarkRepository;
+
+    @Autowired
+    BiddingRepository biddingRepository;
+
     @BeforeEach
     void setUp() {
         Member member = memberRepository.save(Member.of(0, Status.ACTIVE, "100", Role.USER));
         List<String> categories = Arrays.asList("DIGITAL_DEVICE", "FURNITURE", "CLOTHING", "FOOD", "BOOK");
-        for (int i = 0; i < 5; i++) {
+        for (int i = 1; i <= 5; i++) {
             Product product = Product.builder()
                     .productState(ProductState.ON_SALE)
                     .content("qwer")
                     .deadline(LocalDateTime.now())
                     .initialPrice(1000)
-                    .category(Category.from(categories.get(i)))
+                    .category(Category.from(categories.get(i-1)))
                     .member(member)
                     .name("qwerasdf")
                     .build();
 
+            product = productRepository.save(product);
+
             for (int j = 0; j < i; j++) {
-                product.addBookmark();
+                Bookmark bookmark = Bookmark.builder()
+                        .product(product)
+                        .member(member)
+                        .build();
+
+                bookmarkRepository.save(bookmark);
             }
 
-            product.updateCurrentBid(i*1000);
-            product = productRepository.save(product);
+            for (int j = 0; j < i; j++) {
+                Bidding bidding = Bidding.builder()
+                        .product(product)
+                        .member(member)
+                        .price(1000 * j)
+                        .build();
+
+                biddingRepository.save(bidding);
+            }
 
             Image image1 = Image.builder()
                     .imageUrl("qwer.png")
@@ -176,7 +200,7 @@ class ProductRepositoryTest {
 
         assertThat(response1.hasNext()).isTrue();
         assertThat(response1.values().size()).isEqualTo(3);
-        assertThat(response1.values().get(0).bookmarkCount()).isEqualTo(4);
+        assertThat(response1.values().get(0).bookmarkCount()).isEqualTo(5);
 
         String cursor = response1.cursor();
 
@@ -185,8 +209,8 @@ class ProductRepositoryTest {
 
         assertThat(response2.hasNext()).isFalse();
         assertThat(response2.values().size()).isEqualTo(2);
-        assertThat(response2.values().get(0).bookmarkCount()).isEqualTo(1);
-        assertThat(response2.values().get(1).bookmarkCount()).isEqualTo(0);
+        assertThat(response2.values().get(0).bookmarkCount()).isEqualTo(2);
+        assertThat(response2.values().get(1).bookmarkCount()).isEqualTo(1);
     }
 
     @ParameterizedTest
