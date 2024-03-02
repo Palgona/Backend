@@ -70,7 +70,11 @@ public class Member extends BaseTimeEntity {
         this.profileImage = imageUrl;
     }
 
+
+    public void updateMileage(int after){ this.mileage = after; }
+
     public void signUp() {
         this.role = Role.USER;
     }
+
 }
