@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.palgona.palgona.common.error.code.MileageErrorCode.INVALID_CHARGE_AMOUNT;
+import static com.palgona.palgona.common.error.code.MileageErrorCode.INVALID_MILEAGE_TRANSACTION;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +49,21 @@ public class MileageHistoryService {
 
     public int readMileage(CustomMemberDetails memberDetails){
         Member member = memberDetails.getMember();
+
+        //1. 해당 멤버의 최신 마일리지 기록을 확인
+        MileageHistory mileageHistory = mileageHistoryRepository.findTopByMember(member).orElse(null);
+
+        //2. 예외처리) 마일리지 거래 내역이 없는데, 마일리지 값이 0이 아닌 경우
+        if (mileageHistory == null && member.getMileage() != 0) {
+            member.updateMileage(0);
+            throw new BusinessException(INVALID_MILEAGE_TRANSACTION);
+        }
+
+        //3. 예외처리) 마일리지 최근 내역과 일치하지 않는 경우
+        if(!mileageHistory.getAfter().equals(member.getMileage())){
+            member.updateMileage(mileageHistory.getAfter());
+            throw new BusinessException(INVALID_MILEAGE_TRANSACTION);
+        }
 
         return member.getMileage();
     }
