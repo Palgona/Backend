@@ -3,7 +3,10 @@ package com.palgona.palgona.controller;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 import com.palgona.palgona.common.dto.CustomMemberDetails;
+import com.palgona.palgona.common.jwt.util.JwtService;
 import com.palgona.palgona.common.jwt.util.JwtUtils;
+import com.palgona.palgona.common.jwt.util.TokenExtractor;
+import com.palgona.palgona.dto.AuthToken;
 import com.palgona.palgona.dto.LoginResponse;
 import com.palgona.palgona.dto.MemberCreateRequest;
 import com.palgona.palgona.dto.MemberCreateRequestWithoutImage;
@@ -27,11 +30,12 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
 public class LoginController {
-    private static final String BEARER = "bearer ";
-    private static final String REFRESH_HEADER = "refresh-Authorization";
+    private static final String BEARER = "Bearer ";
+    private static final String REFRESH_HEADER = "refresh-token";
 
     private final LoginService loginService;
-    private final JwtUtils jwtUtils;
+    private final JwtService jwtService;
+    private final TokenExtractor tokenExtractor;
 
     @PostMapping(
             value = "/signup",
@@ -59,12 +63,31 @@ public class LoginController {
 
         LoginResponse loginResponse = loginService.login(request);
         String socialId = loginResponse.socialId();
-
-        String accessToken = jwtUtils.createAccessToken(socialId);
-        String refreshToken = jwtUtils.createRefreshToken(socialId);
-        response.setHeader(AUTHORIZATION, BEARER + accessToken);
-        response.setHeader(REFRESH_HEADER, BEARER + refreshToken);
+        AuthToken authToken = jwtService.issueToken(socialId);
+        response.setHeader(AUTHORIZATION, BEARER + authToken.accessToken());
+        response.setHeader(REFRESH_HEADER, BEARER + authToken.refreshToken());
 
         return loginResponse;
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        String refreshToken = tokenExtractor.extractRefreshToken(request);
+        String accessToken = tokenExtractor.extractAccessToken(request);
+        jwtService.removeRefreshToken(refreshToken);
+        loginService.logout(accessToken);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<Void> reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        String accessToken = tokenExtractor.extractAccessToken(request);
+        String refreshToken = tokenExtractor.extractRefreshToken(request);
+        AuthToken authToken = jwtService.reissueToken(accessToken, refreshToken);
+        response.setHeader(AUTHORIZATION, BEARER + authToken.accessToken());
+        response.setHeader(REFRESH_HEADER, BEARER + authToken.refreshToken());
+
+        return ResponseEntity.noContent().build();
     }
 }
