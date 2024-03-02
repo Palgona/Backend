@@ -39,7 +39,6 @@ public class BookmarkService {
                 .product(product)
                 .build();
 
-        product.addBookmark();
         bookmarkRepository.save(bookmark);
     }
 
@@ -56,7 +55,6 @@ public class BookmarkService {
                 .orElseThrow(() -> new IllegalArgumentException());
 
         //3. 찜 삭제
-        product.removeBookmark();
         bookmarkRepository.delete(bookmark);
     }
 }

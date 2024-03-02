@@ -1,6 +1,8 @@
 package com.palgona.palgona.domain.product;
 
 import com.palgona.palgona.common.entity.BaseTimeEntity;
+import com.palgona.palgona.domain.bidding.Bidding;
+import com.palgona.palgona.domain.bookmark.Bookmark;
 import com.palgona.palgona.domain.member.Member;
 import jakarta.persistence.*;
 
@@ -45,10 +47,6 @@ public class Product extends BaseTimeEntity {
     @OneToMany(mappedBy = "product")
     private List<ProductImage> productImages = new ArrayList<>();
 
-    private int bookmarkCount;
-
-    private int currentBid;
-
     @Builder
     public Product(
             String name,
@@ -65,7 +63,6 @@ public class Product extends BaseTimeEntity {
         this.deadline = deadline;
         this.productState = productState;
         this.member = member;
-        this.currentBid = 0;
     }
 
     public void updateName(String name) {
@@ -90,10 +87,6 @@ public class Product extends BaseTimeEntity {
 
     public void updateProductState(ProductState productState) {this.productState = productState;}
 
-    public void updateCurrentBid(int bid) {
-        this.currentBid = bid;
-    }
-
     public boolean isDeadlineReached() {
         LocalDateTime currentDateTime = LocalDateTime.now();
         return currentDateTime.isAfter(this.deadline);
@@ -101,14 +94,6 @@ public class Product extends BaseTimeEntity {
 
     public boolean isOwner(Member member){
         return this.member.getId().equals(member.getId());
-    }
-
-    public void addBookmark() {
-        bookmarkCount++;
-    }
-
-    public void removeBookmark() {
-        bookmarkCount--;
     }
 
     public void addProductImage(ProductImage productImage) {

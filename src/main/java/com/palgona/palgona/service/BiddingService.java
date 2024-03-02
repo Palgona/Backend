@@ -52,7 +52,6 @@ public class BiddingService {
         }
         
         Bidding bidding = Bidding.builder().member(member).product(product).price(attemptPrice).build();
-        product.updateCurrentBid(attemptPrice);
 
         biddingRepository.save(bidding);
     }
