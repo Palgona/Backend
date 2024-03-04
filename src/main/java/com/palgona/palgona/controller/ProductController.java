@@ -1,9 +1,13 @@
 package com.palgona.palgona.controller;
 
 import com.palgona.palgona.common.dto.CustomMemberDetails;
+import com.palgona.palgona.common.dto.response.SliceResponse;
+import com.palgona.palgona.domain.product.Category;
+import com.palgona.palgona.domain.product.SortType;
 import com.palgona.palgona.dto.ProductCreateRequest;
 import com.palgona.palgona.dto.ProductResponse;
 import com.palgona.palgona.dto.ProductUpdateRequest;
+import com.palgona.palgona.dto.response.ProductPageResponse;
 import com.palgona.palgona.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +48,21 @@ public class ProductController {
 
         return ResponseEntity.ok()
                 .body(productResponse);
+    }
+
+    @GetMapping
+    public ResponseEntity<SliceResponse<ProductPageResponse>> readProducts(
+            @RequestParam(defaultValue = "LATEST") SortType sortType,
+            @RequestParam(required = false) Category category,
+            @RequestParam(required = false) String searchWord,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false, defaultValue = "20") int pageSize
+    ) {
+
+        SliceResponse<ProductPageResponse> response = productService.readProducts(
+                sortType, category, searchWord, cursor, pageSize);
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{productId}")

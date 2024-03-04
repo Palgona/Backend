@@ -1,6 +1,7 @@
 package com.palgona.palgona.domain.product;
 
 
+import java.util.Arrays;
 import lombok.Getter;
 
 @Getter
@@ -14,6 +15,13 @@ public enum Category {
 
     private final String key;
     private final String value;
+
+    public static Category from(String name) {
+        return Arrays.stream(values())
+                .filter(category -> category.getKey().equals(name))
+                .findAny()
+                .orElse(null);
+    }
 
     Category(String key, String value) {
         this.key = key;
