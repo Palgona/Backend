@@ -153,6 +153,8 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException());
 
+        //0. 상품 유효성 확인
+        checkProduct(request.initialPrice(), request.category(), request.deadline());
 
         //1. 상품에 대한 권한 확인
         checkPermission(member, product);
