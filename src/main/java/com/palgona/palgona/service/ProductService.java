@@ -2,21 +2,17 @@ package com.palgona.palgona.service;
 
 import com.palgona.palgona.common.dto.CustomMemberDetails;
 import com.palgona.palgona.common.error.exception.BusinessException;
-import com.palgona.palgona.domain.bidding.Bidding;
+import com.palgona.palgona.domain.bookmark.Bookmark;
 import com.palgona.palgona.domain.image.Image;
 import com.palgona.palgona.domain.member.Member;
-import com.palgona.palgona.domain.member.Role;
 import com.palgona.palgona.domain.product.Category;
 import com.palgona.palgona.domain.product.Product;
 import com.palgona.palgona.domain.product.ProductImage;
 import com.palgona.palgona.domain.product.ProductState;
 import com.palgona.palgona.dto.ProductCreateRequest;
-import com.palgona.palgona.dto.ProductResponse;
+import com.palgona.palgona.dto.ProductDetailResponse;
 import com.palgona.palgona.dto.ProductUpdateRequest;
-import com.palgona.palgona.repository.BiddingRepository;
-import com.palgona.palgona.repository.ImageRepository;
-import com.palgona.palgona.repository.ProductImageRepository;
-import com.palgona.palgona.repository.ProductRepository;
+import com.palgona.palgona.repository.*;
 import com.palgona.palgona.service.image.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,8 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.palgona.palgona.common.error.code.ProductErrorCode.INSUFFICIENT_PERMISSION;
-import static com.palgona.palgona.common.error.code.ProductErrorCode.RELATED_BIDDING_EXISTS;
+import static com.palgona.palgona.common.error.code.ProductErrorCode.*;
 
 @RequiredArgsConstructor
 @Service
@@ -35,6 +30,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ImageRepository imageRepository;
+    private final BookmarkRepository bookmarkRepository;
 
     private final ProductImageRepository productImageRepository;
     private final BiddingRepository biddingRepository;
@@ -78,16 +74,30 @@ public class ProductService {
         }
     }
 
-    public ProductResponse readProduct(Long productId){
-        Product product = productRepository.findById(productId).get();
+    public ProductDetailResponse readProduct(Long productId){
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException());
 
+        //1. 상품이 삭제되었는지 확인
+        if(product.isDeleted()){
+            throw new BusinessException(DELETED_PRODUCT);
+        }
+
+        //2. 상품 이미지 가져오기
         List<String> imageUrls = productImageRepository.findByProduct(product).stream()
                 .map(productImage -> productImage.getImage().getImageUrl())
                 .collect(Collectors.toList());
 
-        //Todo: 입찰 정보, 채팅, 찜 정보도 가져오는 로직 추가
+        //3. 현재 입찰 최고가 정보 가져오기
+        int highestPrice = biddingRepository.findHighestPriceByProduct(product)
+                .orElse(product.getInitialPrice());
 
-        return ProductResponse.from(product, imageUrls);
+        //4. 찜 정보 가져오기
+        long bookmarkCount = bookmarkRepository.countByProduct(product);
+
+        //Todo: 5. 채팅 개수 정보 가져오기
+
+        return ProductDetailResponse.from(product, imageUrls, highestPrice, bookmarkCount);
     }
 
     @Transactional
@@ -116,7 +126,7 @@ public class ProductService {
 //            imageRepository.delete(image);
 //        }
 
-        //Todo: 4-2. 상품과 관련된 정보들 삭제(찜 정보) + 채팅 정보는 어떻게?
+
 
         //5. 상품의 상태를 DELETED로 업데이트 (soft delete)
         product.updateProductState(ProductState.DELETED);
