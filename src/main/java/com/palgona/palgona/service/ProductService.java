@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +41,9 @@ public class ProductService {
     public void createProduct(ProductCreateRequest request, List<MultipartFile> imageFiles, CustomMemberDetails memberDetails) {
 
         Member member = memberDetails.getMember();
+
+        //1. 상품 정보 유효성 확인
+        checkProduct(request.initialPrice(), request.category(), request.deadline());
 
         //상품 저장
         Product product = Product.builder()
@@ -212,6 +216,26 @@ public class ProductService {
     private void checkPermission(Member member, Product product) {
         if (!(product.isOwner(member) || member.isAdmin())) {
             throw new BusinessException(INSUFFICIENT_PERMISSION);
+        }
+    }
+
+    private void checkProduct(int price, String category, LocalDateTime deadline){
+        //1. 상품 가격이 마이너스인 경우 처리
+        if(price < 0){
+            throw new BusinessException(INVALID_PRICE);
+        }
+
+        //2. 상품 카테고리가 없는 경우
+        try {
+            Category.valueOf(category);
+        } catch (Exception e) {
+            throw new BusinessException(INVALID_CATEGORY);
+        }
+
+
+        //3. 상품 판매 기간이 하루 미만일 경우
+        if(deadline.isBefore(LocalDateTime.now().plusDays(1))){
+            throw new BusinessException(INVALID_DEADLINE);
         }
     }
 
