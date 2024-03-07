@@ -1,6 +1,7 @@
 package com.palgona.palgona.service;
 
 import com.palgona.palgona.common.dto.CustomMemberDetails;
+import com.palgona.palgona.common.dto.response.SliceResponse;
 import com.palgona.palgona.common.error.exception.BusinessException;
 import com.palgona.palgona.domain.bookmark.Bookmark;
 import com.palgona.palgona.domain.image.Image;
@@ -9,10 +10,16 @@ import com.palgona.palgona.domain.product.Category;
 import com.palgona.palgona.domain.product.Product;
 import com.palgona.palgona.domain.product.ProductImage;
 import com.palgona.palgona.domain.product.ProductState;
+import com.palgona.palgona.domain.product.SortType;
 import com.palgona.palgona.dto.ProductCreateRequest;
 import com.palgona.palgona.dto.ProductDetailResponse;
 import com.palgona.palgona.dto.ProductUpdateRequest;
 import com.palgona.palgona.repository.*;
+import com.palgona.palgona.dto.response.ProductPageResponse;
+import com.palgona.palgona.repository.BiddingRepository;
+import com.palgona.palgona.repository.ImageRepository;
+import com.palgona.palgona.repository.ProductImageRepository;
+import com.palgona.palgona.repository.product.ProductRepository;
 import com.palgona.palgona.service.image.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -102,6 +109,16 @@ public class ProductService {
         //Todo: 5. 채팅 개수 정보 가져오기
 
         return ProductDetailResponse.from(product, imageUrls, highestPrice, bookmarkCount);
+    }
+
+    @Transactional(readOnly = true)
+    public SliceResponse<ProductPageResponse> readProducts(SortType sortType,
+                                                           Category category,
+                                                           String searchWord,
+                                                           String cursor,
+                                                           int pageSize
+    ) {
+        return productRepository.findAllByCategoryAndSearchWord(category, searchWord, cursor, sortType, pageSize);
     }
 
     @Transactional

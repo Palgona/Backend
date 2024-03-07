@@ -41,6 +41,10 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
     }
 
     private SliceResponse<MemberResponse> convertToSlice(List<MemberResponse> members) {
+        if (members.isEmpty()) {
+            return SliceResponse.of(members, false, null);
+        }
+
         boolean hasNext = existNextPage(members);
         String nextCursor = generateCursor(members);
         return SliceResponse.of(members, hasNext, nextCursor);

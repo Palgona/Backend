@@ -16,7 +16,7 @@ import com.palgona.palgona.domain.product.Product;
 import com.palgona.palgona.domain.product.ProductState;
 import com.palgona.palgona.dto.BiddingAttemptRequest;
 import com.palgona.palgona.repository.BiddingRepository;
-import com.palgona.palgona.repository.ProductRepository;
+import com.palgona.palgona.repository.product.ProductRepository;
 import com.palgona.palgona.service.BiddingService;
 import java.time.LocalDateTime;
 import java.util.Optional;

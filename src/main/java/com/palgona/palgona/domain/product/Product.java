@@ -1,10 +1,14 @@
 package com.palgona.palgona.domain.product;
 
 import com.palgona.palgona.common.entity.BaseTimeEntity;
+import com.palgona.palgona.domain.bidding.Bidding;
+import com.palgona.palgona.domain.bookmark.Bookmark;
 import com.palgona.palgona.domain.member.Member;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,6 +43,9 @@ public class Product extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    @OneToMany(mappedBy = "product")
+    private List<ProductImage> productImages = new ArrayList<>();
 
     @Builder
     public Product(
@@ -89,5 +96,10 @@ public class Product extends BaseTimeEntity {
         return this.member.getId().equals(member.getId());
     }
 
+
     public boolean isDeleted(){ return this.productState == ProductState.DELETED; }
+
+    public void addProductImage(ProductImage productImage) {
+        productImages.add(productImage);
+    }
 }
