@@ -178,6 +178,7 @@ public class ProductService {
         // 이미지와 연관된 상품 이미지 및 이미지 삭제
         List<Image> images = imageRepository.findImageByImageUrls(deletedImageUrls);
         productImageRepository.deleteByImageIds(images);
+        imageRepository.deleteByImageUrls(deletedImageUrls);
 
         // 이미지 파일 삭제 (S3에 있는 이미지 파일 삭제)
         for (String imageUrl : deletedImageUrls) {

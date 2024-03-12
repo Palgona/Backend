@@ -13,4 +13,10 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
         where i.imageUrl in :urls
     """)
     List<Image> findImageByImageUrls(List<String> urls);
+
+    @Query("""
+     delete from Image i
+     where i.imageUrl in :urls
+    """)
+    void deleteByImageUrls(List<String> urls);
 }
