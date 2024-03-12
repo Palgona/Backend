@@ -1,5 +1,6 @@
 package com.palgona.palgona.repository;
 
+import com.palgona.palgona.domain.image.Image;
 import com.palgona.palgona.domain.product.Product;
 import com.palgona.palgona.domain.product.ProductImage;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,6 +18,9 @@ public interface ProductImageRepository extends JpaRepository<ProductImage, Long
     """)
     List<String> findProductImageUrlsByProduct(Long productId);
 
-    @Query("SELECT pi FROM ProductImage pi WHERE pi.product = :product AND pi.image.imageUrl = :imageUrl")
-    Optional<ProductImage> findByProductAndImageUrl(Product product, String imageUrl);
+    @Query("""
+        delete from ProductImage pi
+        where pi.image in :images
+    """)
+    void deleteByImageIds(List<Image> images);
 }

@@ -175,16 +175,13 @@ public class ProductService {
         //4-1. 삭제된 상품 이미지 처리
         List<String> deletedImageUrls = request.deletedImageUrls();
 
+        // 이미지와 연관된 상품 이미지 및 이미지 삭제
+        List<Image> images = imageRepository.findImageByImageUrls(deletedImageUrls);
+        productImageRepository.deleteByImageIds(images);
+
+        // 이미지 파일 삭제 (S3에 있는 이미지 파일 삭제)
         for (String imageUrl : deletedImageUrls) {
-            // 이미지 파일 삭제 (S3 또는 다른 스토리지에 있는 이미지 파일 삭제)
             s3Service.deleteFile(imageUrl);
-            // 이미지와 연관된 상품 이미지 및 이미지 삭제
-            ProductImage productImage = productImageRepository.findByProductAndImageUrl(product, imageUrl)
-                    .orElseThrow(() -> new IllegalArgumentException());
-
-            productImageRepository.delete(productImage);
-            imageRepository.delete(productImage.getImage());
-
         }
 
         //4-2. 새로 추가된 상품 이미지 저장
