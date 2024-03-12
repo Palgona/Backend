@@ -2,8 +2,8 @@ package com.palgona.palgona.service;
 
 import com.palgona.palgona.common.dto.CustomMemberDetails;
 import com.palgona.palgona.common.error.exception.BusinessException;
-import com.palgona.palgona.domain.mailage.MileageHistory;
-import com.palgona.palgona.domain.mailage.MileageState;
+import com.palgona.palgona.domain.mileage.MileageHistory;
+import com.palgona.palgona.domain.mileage.MileageState;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.dto.MileageChargeRequest;
 import com.palgona.palgona.repository.MileageHistoryRepository;

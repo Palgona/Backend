@@ -1,4 +1,4 @@
-package com.palgona.palgona.domain.mailage;
+package com.palgona.palgona.domain.mileage;
 
 public enum MileageState {
     CHARGE("CHARGE", "충전"),

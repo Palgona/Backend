@@ -1,8 +1,7 @@
 package com.palgona.palgona.repository;
 
-import com.palgona.palgona.domain.mailage.MileageHistory;
+import com.palgona.palgona.domain.mileage.MileageHistory;
 import com.palgona.palgona.domain.member.Member;
-import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

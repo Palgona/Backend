@@ -1,4 +1,4 @@
-package com.palgona.palgona.domain.mailage;
+package com.palgona.palgona.domain.mileage;
 
 import com.palgona.palgona.common.entity.BaseTimeEntity;
 import com.palgona.palgona.domain.member.Member;
