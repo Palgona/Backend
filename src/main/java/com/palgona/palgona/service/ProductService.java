@@ -20,6 +20,7 @@ import com.palgona.palgona.repository.BiddingRepository;
 import com.palgona.palgona.repository.ImageRepository;
 import com.palgona.palgona.repository.ProductImageRepository;
 import com.palgona.palgona.repository.product.ProductRepository;
+import com.palgona.palgona.repository.product.querydto.ProductDetailQueryResponse;
 import com.palgona.palgona.service.image.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -86,29 +87,22 @@ public class ProductService {
     }
 
     public ProductDetailResponse readProduct(Long productId){
-        Product product = productRepository.findById(productId)
+        //1. 상품 정보 가져오기(상품, 멤버, 최고 입찰가, 북마크 개수)
+        //Todo: 1-2. 채팅 개수 정보 가져오기
+        ProductDetailQueryResponse queryResponse = productRepository.findProductWithAll(productId)
                 .orElseThrow(() -> new IllegalArgumentException());
 
-        //1. 상품이 삭제되었는지 확인
-        if(product.isDeleted()){
+        //2. 상품이 삭제되었는지 확인
+        if(queryResponse.product().isDeleted()){
             throw new BusinessException(DELETED_PRODUCT);
         }
 
-        //2. 상품 이미지 가져오기
-        List<String> imageUrls = productImageRepository.findByProduct(product).stream()
+        //3. 상품 이미지 가져오기
+        List<String> imageUrls = queryResponse.product().getProductImages().stream()
                 .map(productImage -> productImage.getImage().getImageUrl())
                 .collect(Collectors.toList());
 
-        //3. 현재 입찰 최고가 정보 가져오기
-        int highestPrice = biddingRepository.findHighestPriceByProduct(product)
-                .orElse(product.getInitialPrice());
-
-        //4. 찜 정보 가져오기
-        long bookmarkCount = bookmarkRepository.countByProduct(product);
-
-        //Todo: 5. 채팅 개수 정보 가져오기
-
-        return ProductDetailResponse.from(product, imageUrls, highestPrice, bookmarkCount);
+        return ProductDetailResponse.from(queryResponse, imageUrls);
     }
 
     @Transactional(readOnly = true)

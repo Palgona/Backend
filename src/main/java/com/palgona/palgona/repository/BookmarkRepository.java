@@ -15,6 +15,4 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 
     List<Bookmark> findByProduct(Product product);
 
-    long countByProduct(Product product);
-
 }
