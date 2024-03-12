@@ -96,9 +96,6 @@ public class Product extends BaseTimeEntity {
         return this.member.equals(member);
     }
 
-
-    public boolean isDeleted(){ return this.productState == ProductState.DELETED; }
-
     public void addProductImage(ProductImage productImage) {
         productImages.add(productImage);
     }
