@@ -37,9 +37,9 @@ public class MileageHistoryService {
 
         //3. 마일리지 변경이력 생성
         MileageHistory mileageHistory = MileageHistory.builder()
-                .before(before)
+                .beforeMileage(before)
                 .amount(amount)
-                .after(after)
+                .afterMileage(after)
                 .member(member)
                 .state(MileageState.CHARGE)
                 .build();
@@ -60,8 +60,8 @@ public class MileageHistoryService {
         }
 
         //3. 예외처리) 마일리지 최근 내역과 일치하지 않는 경우
-        if(!mileageHistory.getAfter().equals(member.getMileage())){
-            member.updateMileage(mileageHistory.getAfter());
+        if(!mileageHistory.getAfterMileage().equals(member.getMileage())){
+            member.updateMileage(mileageHistory.getAfterMileage());
             throw new BusinessException(INVALID_MILEAGE_TRANSACTION);
         }
 

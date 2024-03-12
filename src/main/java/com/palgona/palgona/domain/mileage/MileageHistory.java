@@ -17,10 +17,10 @@ public class MileageHistory extends BaseTimeEntity {
     private Long id;
 
     @Column(nullable = false)
-    private Integer before;
+    private Integer beforeMileage;
 
     @Column(nullable = false)
-    private Integer after;
+    private Integer afterMileage;
 
     @Column(nullable = false)
     private Integer amount;
@@ -35,14 +35,14 @@ public class MileageHistory extends BaseTimeEntity {
 
     @Builder
     MileageHistory(
-            int before,
-            int after,
+            int beforeMileage,
+            int afterMileage,
             int amount,
             MileageState state,
             Member member
     ){
-        this.before = before;
-        this.after = after;
+        this.beforeMileage = beforeMileage;
+        this.afterMileage = afterMileage;
         this.amount = amount;
         this.state = state;
         this.member = member;
