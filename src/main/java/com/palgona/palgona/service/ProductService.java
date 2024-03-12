@@ -93,14 +93,12 @@ public class ProductService {
                 .orElseThrow(() -> new IllegalArgumentException());
 
         //2. 상품이 삭제되었는지 확인
-        if(queryResponse.product().isDeleted()){
+        if(ProductState.valueOf(queryResponse.productState()) == ProductState.DELETED){
             throw new BusinessException(DELETED_PRODUCT);
         }
 
         //3. 상품 이미지 가져오기
-        List<String> imageUrls = queryResponse.product().getProductImages().stream()
-                .map(productImage -> productImage.getImage().getImageUrl())
-                .collect(Collectors.toList());
+        List<String> imageUrls = productImageRepository.findProductImageUrlsByProduct(queryResponse.productId());
 
         return ProductDetailResponse.from(queryResponse, imageUrls);
     }
@@ -143,6 +141,7 @@ public class ProductService {
 
         //4. 상품과 관련된 정보들 삭제
         //4-1. 상품 찜 정보 삭제
+        //Todo: 아래 부분 최적화
         List<Bookmark> bookmarks = bookmarkRepository.findByProduct(product);
         for(Bookmark bookmark : bookmarks){
             bookmarkRepository.delete(bookmark);

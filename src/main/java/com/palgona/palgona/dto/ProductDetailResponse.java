@@ -12,6 +12,7 @@ public record ProductDetailResponse(
         String productName,
         String content,
         String category,
+        String productState,
         LocalDateTime deadline,
         LocalDateTime created_at,
         Long ownerId,
@@ -26,15 +27,16 @@ public record ProductDetailResponse(
             List<String> files
     ){
         return new ProductDetailResponse(
-                queryResponse.product().getId(),
-                queryResponse.product().getName(),
-                queryResponse.product().getContent(),
-                queryResponse.product().getCategory().getValue(),
-                queryResponse.product().getDeadline(),
-                queryResponse.product().getCreatedAt(),
-                queryResponse.member().getId(),
-                queryResponse.member().getNickName(),
-                queryResponse.member().getProfileImage(),
+                queryResponse.productId(),
+                queryResponse.productName(),
+                queryResponse.content(),
+                queryResponse.category(),
+                queryResponse.productState(),
+                queryResponse.deadline(),
+                queryResponse.created_at(),
+                queryResponse.ownerId(),
+                queryResponse.ownerName(),
+                queryResponse.ownerImgUrl(),
                 queryResponse.highestBid(),
                 queryResponse.bookmarkCount(),
                 files
