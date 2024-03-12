@@ -141,11 +141,7 @@ public class ProductService {
 
         //4. 상품과 관련된 정보들 삭제
         //4-1. 상품 찜 정보 삭제
-        //Todo: 아래 부분 최적화
-        List<Bookmark> bookmarks = bookmarkRepository.findByProduct(product);
-        for(Bookmark bookmark : bookmarks){
-            bookmarkRepository.delete(bookmark);
-        }
+        bookmarkRepository.deleteByProduct(product);
 
         //5. 상품의 상태를 DELETED로 업데이트 (soft delete)
         product.updateProductState(ProductState.DELETED);

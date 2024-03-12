@@ -13,6 +13,9 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 
     Optional<Bookmark> findByMemberAndProduct(Member member, Product product);
 
-    List<Bookmark> findByProduct(Product product);
-
+    @Query("""
+        delete from Bookmark b
+        where b.product = :product
+    """)
+    void deleteByProduct(Product product);
 }
