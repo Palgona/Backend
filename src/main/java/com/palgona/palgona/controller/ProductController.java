@@ -5,7 +5,7 @@ import com.palgona.palgona.common.dto.response.SliceResponse;
 import com.palgona.palgona.domain.product.Category;
 import com.palgona.palgona.domain.product.SortType;
 import com.palgona.palgona.dto.ProductCreateRequest;
-import com.palgona.palgona.dto.ProductResponse;
+import com.palgona.palgona.dto.ProductDetailResponse;
 import com.palgona.palgona.dto.ProductUpdateRequest;
 import com.palgona.palgona.dto.response.ProductPageResponse;
 import com.palgona.palgona.service.ProductService;
@@ -43,11 +43,11 @@ public class ProductController {
 
     @GetMapping("/{productId}")
     @Operation(summary = "상품 상세 조회 api", description = "상품 id를 받아 상품 상세 정보를 보여준다.")
-    public ResponseEntity<ProductResponse> readProduct(@PathVariable Long productId){
-        ProductResponse productResponse = productService.readProduct(productId);
+    public ResponseEntity<ProductDetailResponse> readProduct(@PathVariable Long productId){
+        ProductDetailResponse productDetailResponse = productService.readProduct(productId);
 
         return ResponseEntity.ok()
-                .body(productResponse);
+                .body(productDetailResponse);
     }
 
     @GetMapping
