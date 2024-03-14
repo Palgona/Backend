@@ -4,6 +4,7 @@ import com.palgona.palgona.common.entity.BaseTimeEntity;
 import com.palgona.palgona.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -26,4 +27,15 @@ public class ChatReadStatus extends BaseTimeEntity {
 
     @Column(nullable = false)
     private Long cursor;
+
+    @Builder
+    ChatReadStatus(Member member, ChatRoom room, Long cursor){
+        this.member = member;
+        this.room = room;
+        this.cursor = cursor;
+    }
+
+    public void updateCursor(Long cursor) {
+        this.cursor = cursor;
+    }
 }

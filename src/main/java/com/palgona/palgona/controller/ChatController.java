@@ -1,7 +1,6 @@
 package com.palgona.palgona.controller;
 
 import com.palgona.palgona.common.dto.CustomMemberDetails;
-import com.palgona.palgona.common.dto.response.SliceResponse;
 import com.palgona.palgona.domain.chat.ChatMessage;
 import com.palgona.palgona.domain.chat.ChatRoom;
 import com.palgona.palgona.domain.member.Member;
@@ -17,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/chats")
 public class ChatController {
     private final ChatService chatService;
+    private final SimpMessageSendingOperations messagingTemplate;
 
     // TODO
     // 1번 멤버로 강제로 바꾸는 코드 없애야함.
@@ -45,7 +46,9 @@ public class ChatController {
     @MessageMapping("/sendMessage")
     @Operation(summary = "채팅 발송 api", description = "socket통신으로 체팅을 받아 발송한다.")
     public void sendMessage(@Payload ChatMessageRequest message) {
-        chatService.sendMessage(message);
+        ChatMessage savedMessage = chatService.sendMessage(message);
+        ChatMessageResponse messageResponse = ChatMessageResponse.of(savedMessage);
+        messagingTemplate.convertAndSend("/sub/topic/chat/" + savedMessage.getRoom().getId(), messageResponse);
     }
 
     @PostMapping
@@ -74,9 +77,10 @@ public class ChatController {
 
     @GetMapping("/{roomId}/unread")
     @Operation(summary = "채팅방의 안읽은 채팅 목록 조회 api", description = "현재 채팅방의 안읽은 채팅 목록을 불러온다.")
-    public ResponseEntity<SliceResponse<ChatMessageResponse>> readUnreadRoomChat(@AuthenticationPrincipal CustomMemberDetails member, @PathVariable Long roomId, @RequestParam Long messageId, @RequestParam String cursor) {
-        SliceResponse<ChatMessageResponse> chats = chatService.getUnreadMessageByRoom(Member.of(1, Status.ACTIVE, "1", Role.USER), roomId, cursor);
-        return ResponseEntity.ok(chats);
+    public ResponseEntity<List<ChatMessageResponse>> readUnreadRoomChat(@AuthenticationPrincipal CustomMemberDetails member, @PathVariable Long roomId, @RequestParam Long messageId, @RequestParam Long cursor) {
+        List<ChatMessage> chats = chatService.getUnreadMessagesByRoom(Member.of(1, Status.ACTIVE, "1", Role.USER), roomId, cursor);
+        List<ChatMessageResponse> responses = chats.stream().map(ChatMessageResponse::of).toList();
+        return ResponseEntity.ok(responses);
     }
 
     @PostMapping("/{roomId}/exit")

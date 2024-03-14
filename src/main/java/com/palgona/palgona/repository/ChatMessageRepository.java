@@ -9,7 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
-    @Query("SELECT cm FROM ChatMessage cm WHERE cm.room.id = :roomId AND cm.id > :cursor")
-    List<ChatMessage> findUnreadMessages(@Param("roomId") Long roomId, @Param("cursor") Long cursor);
     List<ChatMessage> findAllByRoom(ChatRoom room);
+
+    @Query("SELECT cm FROM ChatMessage cm WHERE cm.room.id = :roomId AND cm.id > :cursor ORDER BY cm.id ASC")
+    List<ChatMessage> findMessagesAfterCursor(@Param("roomId") Long roomId, @Param("cursor") Long cursor);
 }
