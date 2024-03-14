@@ -1,4 +1,8 @@
 package com.palgona.palgona.domain.product;
+
+import lombok.Getter;
+
+@Getter
 public enum ProductState {
     ON_SALE("ON_SALE", "판매중"),
     SOLD_OUT("SOLD_OUT", "판매 완료"),
