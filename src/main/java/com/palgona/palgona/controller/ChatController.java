@@ -3,13 +3,7 @@ package com.palgona.palgona.controller;
 import com.palgona.palgona.common.dto.CustomMemberDetails;
 import com.palgona.palgona.domain.chat.ChatMessage;
 import com.palgona.palgona.domain.chat.ChatRoom;
-import com.palgona.palgona.domain.member.Member;
-import com.palgona.palgona.domain.member.Role;
-import com.palgona.palgona.domain.member.Status;
-import com.palgona.palgona.dto.chat.ChatMessageRequest;
-import com.palgona.palgona.dto.chat.ChatMessageResponse;
-import com.palgona.palgona.dto.chat.ChatRoomCreateRequest;
-import com.palgona.palgona.dto.chat.ChatRoomResponse;
+import com.palgona.palgona.dto.chat.*;
 import com.palgona.palgona.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +48,7 @@ public class ChatController {
     @PostMapping
     @Operation(summary = "채팅방 생성 api", description = "사용자와 상대방의 방이 있는지 확인하고 방을 리턴한다.")
     public ResponseEntity<ChatRoom> createChatRoom(@RequestBody ChatRoomCreateRequest request, @AuthenticationPrincipal CustomMemberDetails member) {
-        ChatRoom room = chatService.createRoom(Member.of(1, Status.ACTIVE, "1", Role.USER), request);
+        ChatRoom room = chatService.createRoom(member.getMember(), request);
 
         return ResponseEntity.ok(room);
     }
@@ -62,7 +56,7 @@ public class ChatController {
     @GetMapping
     @Operation(summary = "채팅방 목록 조회 api", description = "현재 유저의 모든 채팅방 목록을 불러온다.")
     public ResponseEntity<List<ChatRoomResponse>> readChatRooms(@AuthenticationPrincipal CustomMemberDetails member) {
-        List<ChatRoom> rooms = chatService.getRoomList(Member.of(1, Status.ACTIVE, "1", Role.USER));
+        List<ChatRoom> rooms = chatService.getRoomList(member.getMember());
 
         return ResponseEntity.ok(mapListToResponse(rooms));
     }
@@ -70,16 +64,18 @@ public class ChatController {
     @GetMapping("/{roomId}")
     @Operation(summary = "채팅방의 채팅 목록 조회 api", description = "현재 채팅방의 채팅 목록을 불러온다.")
     public ResponseEntity<List<ChatMessageResponse>> readRoomChat(@AuthenticationPrincipal CustomMemberDetails member, @PathVariable Long roomId) {
-        List<ChatMessage> chats = chatService.getMessageByRoom(Member.of(1, Status.ACTIVE, "1", Role.USER), roomId);
+        List<ChatMessage> chats = chatService.getMessageByRoom(member.getMember(), roomId);
         List<ChatMessageResponse> responses = chats.stream().map(ChatMessageResponse::of).toList();
+
         return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/{roomId}/unread")
     @Operation(summary = "채팅방의 안읽은 채팅 목록 조회 api", description = "현재 채팅방의 안읽은 채팅 목록을 불러온다.")
     public ResponseEntity<List<ChatMessageResponse>> readUnreadRoomChat(@AuthenticationPrincipal CustomMemberDetails member, @PathVariable Long roomId, @RequestParam Long messageId, @RequestParam Long cursor) {
-        List<ChatMessage> chats = chatService.getUnreadMessagesByRoom(Member.of(1, Status.ACTIVE, "1", Role.USER), roomId, cursor);
+        List<ChatMessage> chats = chatService.getUnreadMessagesByRoom(member.getMember(), roomId, cursor);
         List<ChatMessageResponse> responses = chats.stream().map(ChatMessageResponse::of).toList();
+
         return ResponseEntity.ok(responses);
     }
 
@@ -95,6 +91,14 @@ public class ChatController {
     @Operation(summary = "채팅방 이미지 업로드 api", description = "채팅방의 image를 업로드한다.")
     public ResponseEntity<String> uploadChatImage(@RequestPart(value = "files") List<MultipartFile> files, @AuthenticationPrincipal CustomMemberDetails member) {
         // TODO
+
+        return ResponseEntity.ok(null);
+    }
+
+    @PostMapping("/read")
+    @Operation(summary = "읽은 채팅 최신화 api", description = "가장 마지막에 읽은 채팅을 표시한다.")
+    public ResponseEntity<String> readMessage(@AuthenticationPrincipal CustomMemberDetails member, @RequestBody ReadMessageRequest request) {
+        chatService.readMessage(member.getMember(), request);
 
         return ResponseEntity.ok(null);
     }

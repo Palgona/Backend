@@ -10,6 +10,7 @@ import com.palgona.palgona.domain.chat.ChatType;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.dto.chat.ChatMessageRequest;
 import com.palgona.palgona.dto.chat.ChatRoomCreateRequest;
+import com.palgona.palgona.dto.chat.ReadMessageRequest;
 import com.palgona.palgona.repository.ChatMessageRepository;
 import com.palgona.palgona.repository.ChatReadStatusRepository;
 import com.palgona.palgona.repository.ChatRoomRepository;
@@ -24,8 +25,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ChatService {
-
-
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final MemberRepository memberRepository;
@@ -33,11 +32,9 @@ public class ChatService {
 
     @Transactional
     public ChatMessage sendMessage(ChatMessageRequest messageDto) {
-        // 있는 멤버인지 확인
+        // 있는 멤버와 채팅방인지 확인
         Member sender = memberRepository.findById(messageDto.senderId()).orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_EXIST));
         Member receiver = memberRepository.findById(messageDto.receiverId()).orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_EXIST));
-
-//        ChatRoom room = chatRoomRepository.findBySenderAndReceiver(sender, receiver).orElseThrow(()-> new BusinessException(ChatErrorCode.CHATROOM_NOT_FOUND));
         ChatRoom room = chatRoomRepository.findById(messageDto.roomId()).orElseThrow(() -> new BusinessException(ChatErrorCode.CHATROOM_NOT_FOUND));
 
         // 송신자, 수신자 모두 채팅방에 존재하는지 확인
@@ -46,42 +43,40 @@ public class ChatService {
         }
 
         ChatMessage message = ChatMessage.builder().sender(sender).receiver(receiver).message(messageDto.message()).room(room).type(ChatType.TEXT).build();
-        ChatMessage savedMessage = chatMessageRepository.save(message);
 
-        // 가장 최근에 읽은 데이터를 표시해야함.
-        // 현재 연결되어서 바로 읽었는지 확인이 필요함.
-
-//        ChatReadStatus chatReadStatus = chatReadStatusRepository.findByMemberIdAndRoomId(sender.getId(), room.getId());
-//        if (chatReadStatus == null) {
-//            chatReadStatus = ChatReadStatus.builder().room(room).member(sender).build();
-//        }
-//        chatReadStatus.updateCursor(savedMessage.getId());
-        return savedMessage;
+        return chatMessageRepository.save(message);
     }
 
     public ChatRoom createRoom(Member sender, ChatRoomCreateRequest request) {
         Member receiver = memberRepository.findById(request.visitorId()).orElseThrow();
-        Member sender2 = memberRepository.findById(1L).orElseThrow();
-        Optional<ChatRoom> room = chatRoomRepository.findBySenderAndReceiver(receiver, sender2);
-        if (room.isEmpty()){
-            ChatRoom newRoom = ChatRoom.builder().sender(sender2).receiver(receiver).build();
+        Optional<ChatRoom> room = chatRoomRepository.findBySenderAndReceiver(receiver, sender);
+        if (room.isEmpty()) {
+            ChatRoom newRoom = ChatRoom.builder().sender(sender).receiver(receiver).build();
             return chatRoomRepository.save(newRoom);
         } else {
             return room.get();
         }
+    }
 
+    public void readMessage(Member member, ReadMessageRequest request) {
+        // 가장 최근에 읽은 데이터를 표시해야함.
+        // 현재 연결되어서 바로 읽었는지 확인이 필요함.
+        ChatMessage message = chatMessageRepository.findById(request.messageId()).orElseThrow();
 
+        ChatReadStatus chatReadStatus = chatReadStatusRepository.findByMemberAndRoom(member, message.getRoom());
+        if (chatReadStatus == null) {
+            chatReadStatus = ChatReadStatus.builder().room(message.getRoom()).member(member).build();
+        }
+        chatReadStatus.updateCursor(message.getId());
     }
 
     public List<ChatRoom> getRoomList(Member member) {
-        Member member1 = memberRepository.getReferenceById(1L);
-        return chatRoomRepository.findBySenderOrReceiver(member1);
+        return chatRoomRepository.findBySenderOrReceiver(member);
     }
 
     public List<ChatMessage> getMessageByRoom(Member member, Long roomId) {
         ChatRoom room = chatRoomRepository.findById(roomId).orElseThrow(() -> new BusinessException(ChatErrorCode.CHATROOM_NOT_FOUND));
-        Member member1 = memberRepository.getReferenceById(1L);
-        if (!room.hasMember(member1)) {
+        if (!room.hasMember(member)) {
             throw new BusinessException(ChatErrorCode.INVALID_MEMBER);
         }
         return chatMessageRepository.findAllByRoom(room);
@@ -92,7 +87,7 @@ public class ChatService {
         ChatRoom room = chatRoomRepository.findById(roomId).orElseThrow(() -> new BusinessException(ChatErrorCode.CHATROOM_NOT_FOUND));
 
         // chatReadStatus에 표시된 가장 최근에 읽은 messageId를 cursor로 접근해서 가져옴.
-        ChatReadStatus chatReadStatus = chatReadStatusRepository.findByMemberIdAndRoomId(member.getId(), room.getId());
+        ChatReadStatus chatReadStatus = chatReadStatusRepository.findByMemberAndRoom(member, room);
         if (chatReadStatus == null) {
             chatReadStatus = ChatReadStatus.builder().room(room).member(member).build();
         }
