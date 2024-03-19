@@ -29,11 +29,11 @@ public class ChatController {
     // TODO
     // 1번 멤버로 강제로 바꾸는 코드 없애야함.
 
-    public static ChatRoomResponse mapToResponse(ChatRoom chatRoom) {
+    private static ChatRoomResponse mapToResponse(ChatRoom chatRoom) {
         return new ChatRoomResponse(chatRoom.getId(), chatRoom.getSender().getId(), chatRoom.getReceiver().getId());
     }
 
-    public static List<ChatRoomResponse> mapListToResponse(List<ChatRoom> chatRooms) {
+    private static List<ChatRoomResponse> mapListToResponse(List<ChatRoom> chatRooms) {
         return chatRooms.stream().map(ChatController::mapToResponse).collect(Collectors.toList());
     }
 
@@ -41,16 +41,16 @@ public class ChatController {
     @Operation(summary = "채팅 발송 api", description = "socket통신으로 체팅을 받아 발송한다.")
     public void sendMessage(@Payload ChatMessageRequest message) {
         ChatMessage savedMessage = chatService.sendMessage(message);
-        ChatMessageResponse messageResponse = ChatMessageResponse.of(savedMessage);
+        ChatMessageResponse messageResponse = ChatMessageResponse.from(savedMessage);
         messagingTemplate.convertAndSend("/sub/topic/chat/" + savedMessage.getRoom().getId(), messageResponse);
     }
 
     @PostMapping
     @Operation(summary = "채팅방 생성 api", description = "사용자와 상대방의 방이 있는지 확인하고 방을 리턴한다.")
-    public ResponseEntity<ChatRoom> createChatRoom(@RequestBody ChatRoomCreateRequest request, @AuthenticationPrincipal CustomMemberDetails member) {
+    public ResponseEntity<ChatRoomResponse> createChatRoom(@RequestBody ChatRoomCreateRequest request, @AuthenticationPrincipal CustomMemberDetails member) {
         ChatRoom room = chatService.createRoom(member.getMember(), request);
 
-        return ResponseEntity.ok(room);
+        return ResponseEntity.ok(mapToResponse(room));
     }
 
     @GetMapping
@@ -65,7 +65,7 @@ public class ChatController {
     @Operation(summary = "채팅방의 채팅 목록 조회 api", description = "현재 채팅방의 채팅 목록을 불러온다.")
     public ResponseEntity<List<ChatMessageResponse>> readRoomChat(@AuthenticationPrincipal CustomMemberDetails member, @PathVariable Long roomId) {
         List<ChatMessage> chats = chatService.getMessageByRoom(member.getMember(), roomId);
-        List<ChatMessageResponse> responses = chats.stream().map(ChatMessageResponse::of).toList();
+        List<ChatMessageResponse> responses = chats.stream().map(ChatMessageResponse::from).toList();
 
         return ResponseEntity.ok(responses);
     }
@@ -74,7 +74,7 @@ public class ChatController {
     @Operation(summary = "채팅방의 안읽은 채팅 목록 조회 api", description = "현재 채팅방의 안읽은 채팅 목록을 불러온다.")
     public ResponseEntity<List<ChatMessageResponse>> readUnreadRoomChat(@AuthenticationPrincipal CustomMemberDetails member, @PathVariable Long roomId, @RequestParam Long messageId, @RequestParam Long cursor) {
         List<ChatMessage> chats = chatService.getUnreadMessagesByRoom(member.getMember(), roomId, cursor);
-        List<ChatMessageResponse> responses = chats.stream().map(ChatMessageResponse::of).toList();
+        List<ChatMessageResponse> responses = chats.stream().map(ChatMessageResponse::from).toList();
 
         return ResponseEntity.ok(responses);
     }

@@ -68,6 +68,7 @@ public class ChatService {
             chatReadStatus = ChatReadStatus.builder().room(message.getRoom()).member(member).build();
         }
         chatReadStatus.updateCursor(message.getId());
+        chatReadStatusRepository.save(chatReadStatus);
     }
 
     public List<ChatRoom> getRoomList(Member member) {
@@ -95,6 +96,7 @@ public class ChatService {
         // 값을 가져온 후 가장 최근 데이터로 다시 업데이트
         List<ChatMessage> chatMessages = chatMessageRepository.findMessagesAfterCursor(roomId, cursor);
         chatReadStatus.updateCursor(chatMessages.getLast().getId());
+        chatReadStatusRepository.save(chatReadStatus);
 
         return chatMessages;
     }
