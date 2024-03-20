@@ -33,9 +33,9 @@ public class ChatService {
     @Transactional
     public ChatMessage sendMessage(ChatMessageRequest messageDto) {
         // 있는 멤버와 채팅방인지 확인
-        Member sender = memberRepository.findById(messageDto.senderId()).orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_EXIST));
-        Member receiver = memberRepository.findById(messageDto.receiverId()).orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_EXIST));
-        ChatRoom room = chatRoomRepository.findById(messageDto.roomId()).orElseThrow(() -> new BusinessException(ChatErrorCode.CHATROOM_NOT_FOUND));
+        Member sender = findMember(messageDto.senderId());
+        Member receiver = findMember(messageDto.receiverId());
+        ChatRoom room = findChatRoom(messageDto.roomId());
 
         // 송신자, 수신자 모두 채팅방에 존재하는지 확인
         if (!(room.hasMember(sender) && room.hasMember(receiver))) {
@@ -48,9 +48,13 @@ public class ChatService {
     }
 
     public ChatRoom createRoom(Member sender, ChatRoomCreateRequest request) {
-        Member receiver = memberRepository.findById(request.visitorId()).orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_EXIST));
-        Optional<ChatRoom> room = chatRoomRepository.findBySenderAndReceiver(sender, receiver);
-        return room.orElseGet(() -> chatRoomRepository.save(ChatRoom.builder().sender(sender).receiver(receiver).build()));
+        Member receiver = findMember(request.visitorId());
+        ChatRoom room = findOrCreateChatRoom(sender, receiver);
+        ChatReadStatus receiverStatus = ChatReadStatus.builder().room(room).member(receiver).build();
+        ChatReadStatus senderStatus = ChatReadStatus.builder().room(room).member(sender).build();
+
+        chatReadStatusRepository.saveAll(Arrays.asList(receiverStatus, senderStatus));
+        return room;
     }
 
     public void readMessage(Member member, ReadMessageRequest request) {
@@ -71,7 +75,7 @@ public class ChatService {
     }
 
     public List<ChatMessage> getMessageByRoom(Member member, Long roomId) {
-        ChatRoom room = chatRoomRepository.findById(roomId).orElseThrow(() -> new BusinessException(ChatErrorCode.CHATROOM_NOT_FOUND));
+        ChatRoom room = findChatRoom(roomId);
         if (!room.hasMember(member)) {
             throw new BusinessException(ChatErrorCode.INVALID_MEMBER);
         }
@@ -80,7 +84,7 @@ public class ChatService {
 
     @Transactional
     public List<ChatMessage> getUnreadMessagesByRoom(Member member, Long roomId) {
-        ChatRoom room = chatRoomRepository.findById(roomId).orElseThrow(() -> new BusinessException(ChatErrorCode.CHATROOM_NOT_FOUND));
+        ChatRoom room = findChatRoom(roomId);
 
         // chatReadStatus에 표시된 가장 최근에 읽은 messageId를 cursor로 접근해서 가져옴.
         ChatReadStatus chatReadStatus = chatReadStatusRepository.findByMemberAndRoom(member, room);
@@ -89,10 +93,25 @@ public class ChatService {
         }
 
         // 값을 가져온 후 가장 최근 데이터로 다시 업데이트
-        List<ChatMessage> chatMessages = chatMessageRepository.findMessagesAfterCursor(roomId, chatReadStatus.getCursor());
+        List<ChatMessage> chatMessages = chatMessageRepository.findMessagesAfterCursor(roomId, chatReadStatus.getMessageCursor());
         chatReadStatus.updateCursor(chatMessages.getLast().getId());
         chatReadStatusRepository.save(chatReadStatus);
 
         return chatMessages;
+    }
+
+    private Member findMember(Long visitorId) {
+        return memberRepository.findById(visitorId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_EXIST));
+    }
+
+    private ChatRoom findChatRoom(Long roomId) {
+        return chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new BusinessException(ChatErrorCode.CHATROOM_NOT_FOUND));
+    }
+
+    private ChatRoom findOrCreateChatRoom(Member sender, Member receiver) {
+        return chatRoomRepository.findBySenderAndReceiver(sender, receiver)
+                .orElseGet(() -> chatRoomRepository.save(ChatRoom.builder().sender(sender).receiver(receiver).build()));
     }
 }

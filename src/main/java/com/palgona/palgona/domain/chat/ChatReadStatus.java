@@ -26,16 +26,16 @@ public class ChatReadStatus extends BaseTimeEntity {
     private ChatRoom room;
 
     @Column(nullable = false)
-    private Long cursor;
+    private Long messageCursor;
 
     @Builder
-    ChatReadStatus(Member member, ChatRoom room, Long cursor){
+    ChatReadStatus(Member member, ChatRoom room){
         this.member = member;
         this.room = room;
-        this.cursor = cursor;
+        this.messageCursor = 0L;
     }
 
     public void updateCursor(Long cursor) {
-        this.cursor = cursor;
+        this.messageCursor = cursor;
     }
 }
