@@ -9,6 +9,7 @@ import com.palgona.palgona.domain.chat.ChatRoom;
 import com.palgona.palgona.domain.chat.ChatType;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.dto.chat.ChatMessageRequest;
+import com.palgona.palgona.dto.chat.ChatRoomCountResponse;
 import com.palgona.palgona.dto.chat.ChatRoomCreateRequest;
 import com.palgona.palgona.dto.chat.ReadMessageRequest;
 import com.palgona.palgona.repository.ChatMessageRepository;
@@ -19,8 +20,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +44,6 @@ public class ChatService {
         }
 
         ChatMessage message = ChatMessage.builder().sender(sender).receiver(receiver).message(messageDto.message()).room(room).type(ChatType.TEXT).build();
-
         return chatMessageRepository.save(message);
     }
 
@@ -61,17 +61,13 @@ public class ChatService {
         // 가장 최근에 읽은 데이터를 표시해야함.
         // 현재 연결되어서 바로 읽었는지 확인이 필요함.
         ChatMessage message = chatMessageRepository.findById(request.messageId()).orElseThrow(() -> new BusinessException(ChatErrorCode.MESSAGE_NOT_FOUND));
-
         ChatReadStatus chatReadStatus = chatReadStatusRepository.findByMemberAndRoom(member, message.getRoom());
-        if (chatReadStatus == null) {
-            chatReadStatus = ChatReadStatus.builder().room(message.getRoom()).member(member).build();
-        }
         chatReadStatus.updateCursor(message.getId());
         chatReadStatusRepository.save(chatReadStatus);
     }
 
-    public List<ChatRoom> getRoomList(Member member) {
-        return chatRoomRepository.findBySenderOrReceiver(member);
+    public List<ChatRoomCountResponse> getRoomList(Member member) {
+        return chatRoomRepository.countUnreadMessagesInRooms(member);
     }
 
     public List<ChatMessage> getMessageByRoom(Member member, Long roomId) {
@@ -88,9 +84,6 @@ public class ChatService {
 
         // chatReadStatus에 표시된 가장 최근에 읽은 messageId를 cursor로 접근해서 가져옴.
         ChatReadStatus chatReadStatus = chatReadStatusRepository.findByMemberAndRoom(member, room);
-        if (chatReadStatus == null) {
-            chatReadStatus = ChatReadStatus.builder().room(room).member(member).build();
-        }
 
         // 값을 가져온 후 가장 최근 데이터로 다시 업데이트
         List<ChatMessage> chatMessages = chatMessageRepository.findMessagesAfterCursor(roomId, chatReadStatus.getMessageCursor());

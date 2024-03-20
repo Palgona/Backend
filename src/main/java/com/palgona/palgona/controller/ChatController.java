@@ -54,11 +54,11 @@ public class ChatController {
     }
 
     @GetMapping
-    @Operation(summary = "채팅방 목록 조회 api", description = "현재 유저의 모든 채팅방 목록을 불러온다.")
-    public ResponseEntity<List<ChatRoomResponse>> readChatRooms(@AuthenticationPrincipal CustomMemberDetails member) {
-        List<ChatRoom> rooms = chatService.getRoomList(member.getMember());
+    @Operation(summary = "채팅방 목록 조회 api", description = "현재 유저의 모든 채팅방 목록과 안읽은 채팅수를 불러온다.")
+    public ResponseEntity<List<ChatRoomCountResponse>> readChatRooms(@AuthenticationPrincipal CustomMemberDetails member) {
+        List<ChatRoomCountResponse> rooms = chatService.getRoomList(member.getMember());
 
-        return ResponseEntity.ok(mapListToResponse(rooms));
+        return ResponseEntity.ok(rooms);
     }
 
     @GetMapping("/{roomId}")

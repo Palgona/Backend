@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -32,6 +34,9 @@ public class ChatRoom extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiver_id", nullable = false)
     private Member receiver;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    private List<ChatMessage> chatMessages;
 
     @Builder
     ChatRoom(Member sender, Member receiver){
