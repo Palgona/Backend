@@ -84,7 +84,7 @@ public class ChatService {
     }
 
     @Transactional
-    public List<ChatMessage> getUnreadMessagesByRoom(Member member, Long roomId, Long cursor) {
+    public List<ChatMessage> getUnreadMessagesByRoom(Member member, Long roomId) {
         ChatRoom room = chatRoomRepository.findById(roomId).orElseThrow(() -> new BusinessException(ChatErrorCode.CHATROOM_NOT_FOUND));
 
         // chatReadStatus에 표시된 가장 최근에 읽은 messageId를 cursor로 접근해서 가져옴.
@@ -94,7 +94,7 @@ public class ChatService {
         }
 
         // 값을 가져온 후 가장 최근 데이터로 다시 업데이트
-        List<ChatMessage> chatMessages = chatMessageRepository.findMessagesAfterCursor(roomId, cursor);
+        List<ChatMessage> chatMessages = chatMessageRepository.findMessagesAfterCursor(roomId, chatReadStatus.getCursor());
         chatReadStatus.updateCursor(chatMessages.getLast().getId());
         chatReadStatusRepository.save(chatReadStatus);
 

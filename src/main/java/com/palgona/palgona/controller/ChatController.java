@@ -72,8 +72,8 @@ public class ChatController {
 
     @GetMapping("/{roomId}/unread")
     @Operation(summary = "채팅방의 안읽은 채팅 목록 조회 api", description = "현재 채팅방의 안읽은 채팅 목록을 불러온다.")
-    public ResponseEntity<List<ChatMessageResponse>> readUnreadRoomChat(@AuthenticationPrincipal CustomMemberDetails member, @PathVariable Long roomId, @RequestParam Long messageId, @RequestParam Long cursor) {
-        List<ChatMessage> chats = chatService.getUnreadMessagesByRoom(member.getMember(), roomId, cursor);
+    public ResponseEntity<List<ChatMessageResponse>> readUnreadRoomChat(@AuthenticationPrincipal CustomMemberDetails member, @PathVariable Long roomId) {
+        List<ChatMessage> chats = chatService.getUnreadMessagesByRoom(member.getMember(), roomId);
         List<ChatMessageResponse> responses = chats.stream().map(ChatMessageResponse::from).toList();
 
         return ResponseEntity.ok(responses);
