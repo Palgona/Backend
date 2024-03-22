@@ -13,8 +13,8 @@ public interface ProductImageRepository extends JpaRepository<ProductImage, Long
     @Query("""
         select i.imageUrl
         from ProductImage pi
-        join fetch pi.image i
-        where pi.product = :productId
+        left join pi.image i
+        where pi.product.id = :productId
     """)
     List<String> findProductImageUrlsByProduct(Long productId);
 
