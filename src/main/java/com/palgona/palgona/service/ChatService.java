@@ -84,27 +84,27 @@ public class ChatService {
 
         // chatReadStatus에 표시된 가장 최근에 읽은 messageId를 cursor로 접근해서 가져옴.
         ChatReadStatus chatReadStatus = chatReadStatusRepository.findByMemberAndRoom(member, room);
+        if (chatReadStatus == null) {
+            throw new BusinessException(ChatErrorCode.READ_STATUS_NOT_FOUND);
+        }
 
         // 값을 가져온 후 가장 최근 데이터로 다시 업데이트
         List<ChatMessage> chatMessages = chatMessageRepository.findMessagesAfterCursor(roomId, chatReadStatus.getMessageCursor());
-        chatReadStatus.updateCursor(chatMessages.getLast().getId());
+        chatReadStatus.updateCursor(chatMessages.get(chatMessages.size() - 1).getId());
         chatReadStatusRepository.save(chatReadStatus);
 
         return chatMessages;
     }
 
     private Member findMember(Long visitorId) {
-        return memberRepository.findById(visitorId)
-                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_EXIST));
+        return memberRepository.findById(visitorId).orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_EXIST));
     }
 
     private ChatRoom findChatRoom(Long roomId) {
-        return chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new BusinessException(ChatErrorCode.CHATROOM_NOT_FOUND));
+        return chatRoomRepository.findById(roomId).orElseThrow(() -> new BusinessException(ChatErrorCode.CHATROOM_NOT_FOUND));
     }
 
     private ChatRoom findOrCreateChatRoom(Member sender, Member receiver) {
-        return chatRoomRepository.findBySenderAndReceiver(sender, receiver)
-                .orElseGet(() -> chatRoomRepository.save(ChatRoom.builder().sender(sender).receiver(receiver).build()));
+        return chatRoomRepository.findBySenderAndReceiver(sender, receiver).orElseGet(() -> chatRoomRepository.save(ChatRoom.builder().sender(sender).receiver(receiver).build()));
     }
 }

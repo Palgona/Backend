@@ -1,10 +1,5 @@
 package com.palgona.palgona.service.bidding;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
-
 import com.palgona.palgona.common.error.code.BiddingErrorCode;
 import com.palgona.palgona.common.error.exception.BusinessException;
 import com.palgona.palgona.domain.bidding.Bidding;
@@ -18,12 +13,16 @@ import com.palgona.palgona.dto.BiddingAttemptRequest;
 import com.palgona.palgona.repository.BiddingRepository;
 import com.palgona.palgona.repository.product.ProductRepository;
 import com.palgona.palgona.service.BiddingService;
-import java.time.LocalDateTime;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 class BiddingServiceTest {
 
