@@ -50,4 +50,4 @@ jobs:
             docker rm palgona
             docker image rm -f palgona
             docker pull ${{ secrets.DOCKER_USERNAME }}/palgona
-            docker run -d -p 8080:8080 --name palgona $ {{ secrets.DOCKER_USERNAME }}/palogna
+            docker run -d -p 8080:8080 --name palgona $ {{ secrets.DOCKER_USERNAME }}/palgona
