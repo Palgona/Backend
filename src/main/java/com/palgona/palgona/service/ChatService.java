@@ -46,13 +46,23 @@ public class ChatService {
             throw new BusinessException(ChatErrorCode.INVALID_MEMBER);
         }
 
+        ChatType messageType = ChatType.TEXT;
+        String messageContent = messageDto.message();
+
+        if (messageDto.imgData() != null && !messageDto.imgData().isEmpty()) {
+            // imgData가 있는 경우 S3에 업로드
+            messageContent = s3Service.uploadBase64Image(messageDto.imgData());
+            messageType = ChatType.IMAGE;
+        }
+
         ChatMessage message = ChatMessage.builder()
                 .sender(sender)
                 .receiver(receiver)
-                .message(messageDto.message())
+                .message(messageContent)
                 .room(room)
-                .type(ChatType.TEXT)
+                .type(messageType)
                 .build();
+
         return chatMessageRepository.save(message);
     }
 

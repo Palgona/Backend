@@ -5,8 +5,12 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.palgona.palgona.common.error.code.ChatErrorCode;
+import com.palgona.palgona.common.error.exception.BusinessException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,5 +58,21 @@ public class S3Service {
     private String createFileName(String fileName) {
         FileExtension extension = FileExtension.from(fileName);
         return UUID.randomUUID().toString().concat(extension.getExtension());
+    }
+
+    public String uploadBase64Image(String base64Image) {
+        byte[] decodedBytes = Base64.getDecoder().decode(base64Image);
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(decodedBytes.length);
+        metadata.setContentType("image/jpeg");
+
+        String fileName = UUID.randomUUID().toString() + ".jpg";
+        try (InputStream inputStream = new ByteArrayInputStream(decodedBytes)) {
+            AmazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, metadata));
+        } catch (IOException e) {
+            throw new BusinessException(ChatErrorCode.INVALID_FILE);
+        }
+
+        return AmazonS3.getUrl(bucket, fileName).toString();
     }
 }
