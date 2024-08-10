@@ -1,4 +1,4 @@
 package com.palgona.palgona.dto.chat;
 
-public record ChatRoomCreateRequest(Long visitorId) {
+public record ChatRoomCreateRequest(Long visitorId, Long productId) {
 }
