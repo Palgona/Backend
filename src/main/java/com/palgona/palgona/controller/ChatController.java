@@ -35,7 +35,9 @@ public class ChatController {
                 chatRoom.getSender().getId(),
                 chatRoom.getReceiver().getId(),
                 chatRoom.isLeaveReceiver(),
-                chatRoom.isLeaveSender());
+                chatRoom.isLeaveSender(),
+                chatRoom.getProduct().getId()
+        );
     }
 
     private static List<ChatRoomResponse> mapListToResponse(List<ChatRoom> chatRooms) {
