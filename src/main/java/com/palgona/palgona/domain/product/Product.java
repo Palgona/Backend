@@ -44,9 +44,8 @@ public class Product extends BaseTimeEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chatroom_id", nullable = false)
-    private ChatRoom chatRoom;
+    @OneToMany(mappedBy = "product")
+    private List<ChatRoom> chatRooms = new ArrayList<>();
 
     @OneToMany(mappedBy = "product")
     private List<ProductImage> productImages = new ArrayList<>();
