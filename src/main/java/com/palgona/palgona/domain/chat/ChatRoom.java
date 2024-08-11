@@ -39,6 +39,10 @@ public class ChatRoom extends BaseTimeEntity {
     @JoinColumn(name = "receiver_id", nullable = false)
     private Member receiver;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
     @OneToMany(fetch = FetchType.LAZY)
     private List<ChatMessage> chatMessages;
 
@@ -46,11 +50,12 @@ public class ChatRoom extends BaseTimeEntity {
     private Product product;
 
     @Builder
-    ChatRoom(Member sender, Member receiver){
+    ChatRoom(Member sender, Member receiver, Product product){
         this.sender = sender;
         this.receiver = receiver;
         this.isLeaveSender = false;
         this.isLeaveReceiver = false;
+        this.product = product;
     }
 
     public boolean hasMember(Member member) {

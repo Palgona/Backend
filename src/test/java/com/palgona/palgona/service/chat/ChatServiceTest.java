@@ -11,6 +11,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 
 import com.palgona.palgona.common.error.code.ChatErrorCode;
 import com.palgona.palgona.common.error.exception.BusinessException;
@@ -21,6 +22,9 @@ import com.palgona.palgona.domain.chat.ChatType;
 import com.palgona.palgona.domain.member.Member;
 import com.palgona.palgona.domain.member.Role;
 import com.palgona.palgona.domain.member.Status;
+import com.palgona.palgona.domain.product.Category;
+import com.palgona.palgona.domain.product.Product;
+import com.palgona.palgona.domain.product.ProductState;
 import com.palgona.palgona.dto.chat.ChatMessageRequest;
 import com.palgona.palgona.dto.chat.ChatRoomCreateRequest;
 import com.palgona.palgona.dto.chat.ReadMessageRequest;
@@ -28,8 +32,10 @@ import com.palgona.palgona.repository.ChatMessageRepository;
 import com.palgona.palgona.repository.ChatReadStatusRepository;
 import com.palgona.palgona.repository.ChatRoomRepository;
 import com.palgona.palgona.repository.member.MemberRepository;
+import com.palgona.palgona.repository.product.ProductRepository;
 import com.palgona.palgona.service.ChatService;
 import com.palgona.palgona.service.image.S3Service;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +46,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 class ChatServiceTest {
@@ -54,6 +61,9 @@ class ChatServiceTest {
 
     @Mock
     private ChatReadStatusRepository chatReadStatusRepository;
+
+    @Mock
+    private ProductRepository productRepository;
 
     @InjectMocks
     private ChatService chatService;
@@ -136,14 +146,35 @@ class ChatServiceTest {
         String socialId = "1111";
         Role role = Role.USER;
 
+        String name = "상품1";
+        Integer initialPrice = 10000;
+        String content = "이것은 상품 설명 부분";
+        Category category = Category.BOOK;
+        LocalDateTime deadline = LocalDateTime.now().plusDays(3);
+        ProductState productState = ProductState.ON_SALE;
+
+        MockMultipartFile image1 = new MockMultipartFile(
+                "image1",
+                "product_image1.png",
+                IMAGE_PNG_VALUE,
+                "imageDummy".getBytes()
+        );
+
         Member sender = Member.of(mileage, status, socialId, role);
         Member receiver = Member.of(mileage, status, socialId, role);
         ChatRoom room = ChatRoom.builder().sender(sender).receiver(receiver).build();
-        ChatRoomCreateRequest request = new ChatRoomCreateRequest(1L);
+        Product product = Product.builder().name(name).initialPrice(initialPrice)
+                .content(content)
+                .category(category)
+                .deadline(deadline)
+                .productState(productState)
+                .build();
+        ChatRoomCreateRequest request = new ChatRoomCreateRequest(1L, 1L);
 
         given(memberRepository.findById(1L)).willReturn(Optional.of(receiver));
         given(chatRoomRepository.findBySenderAndReceiver(sender, receiver)).willReturn(Optional.empty());
         given(chatRoomRepository.save(any())).willReturn(room);
+        given(productRepository.findById(any())).willReturn(Optional.ofNullable(product));
 
         // when
         ChatRoom createdRoom = chatService.createRoom(sender, request);

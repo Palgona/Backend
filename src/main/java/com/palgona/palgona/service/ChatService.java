@@ -2,12 +2,14 @@ package com.palgona.palgona.service;
 
 import com.palgona.palgona.common.error.code.ChatErrorCode;
 import com.palgona.palgona.common.error.code.MemberErrorCode;
+import com.palgona.palgona.common.error.code.ProductErrorCode;
 import com.palgona.palgona.common.error.exception.BusinessException;
 import com.palgona.palgona.domain.chat.ChatMessage;
 import com.palgona.palgona.domain.chat.ChatReadStatus;
 import com.palgona.palgona.domain.chat.ChatRoom;
 import com.palgona.palgona.domain.chat.ChatType;
 import com.palgona.palgona.domain.member.Member;
+import com.palgona.palgona.domain.product.Product;
 import com.palgona.palgona.dto.chat.ChatMessageRequest;
 import com.palgona.palgona.dto.chat.ChatRoomCountResponse;
 import com.palgona.palgona.dto.chat.ChatRoomCreateRequest;
@@ -16,6 +18,7 @@ import com.palgona.palgona.repository.ChatMessageRepository;
 import com.palgona.palgona.repository.ChatReadStatusRepository;
 import com.palgona.palgona.repository.ChatRoomRepository;
 import com.palgona.palgona.repository.member.MemberRepository;
+import com.palgona.palgona.repository.product.ProductRepository;
 import com.palgona.palgona.service.image.S3Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +36,7 @@ public class ChatService {
     private final MemberRepository memberRepository;
     private final ChatReadStatusRepository chatReadStatusRepository;
     private final S3Service s3Service;
+    private final ProductRepository productRepository;
 
     @Transactional
     public ChatMessage sendMessage(ChatMessageRequest messageDto) {
@@ -68,9 +72,11 @@ public class ChatService {
 
     public ChatRoom createRoom(Member sender, ChatRoomCreateRequest request) {
         Member receiver = findMember(request.visitorId());
-        ChatRoom room = findOrCreateChatRoom(sender, receiver);
+        Product product = findProduct(request.productId());
+        ChatRoom room = findOrCreateChatRoom(sender, receiver, product);
         ChatReadStatus receiverStatus = ChatReadStatus.builder().room(room).member(receiver).build();
         ChatReadStatus senderStatus = ChatReadStatus.builder().room(room).member(sender).build();
+
 
         chatReadStatusRepository.saveAll(Arrays.asList(receiverStatus, senderStatus));
         return room;
@@ -160,8 +166,13 @@ public class ChatService {
                 .orElseThrow(() -> new BusinessException(ChatErrorCode.CHATROOM_NOT_FOUND));
     }
 
-    private ChatRoom findOrCreateChatRoom(Member sender, Member receiver) {
+    private ChatRoom findOrCreateChatRoom(Member sender, Member receiver, Product product) {
         return chatRoomRepository.findBySenderAndReceiver(sender, receiver)
-                .orElseGet(() -> chatRoomRepository.save(ChatRoom.builder().sender(sender).receiver(receiver).build()));
+                .orElseGet(() -> chatRoomRepository.save(ChatRoom.builder().sender(sender).receiver(receiver).product(product).build()));
+    }
+
+    private Product findProduct(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new BusinessException(ProductErrorCode.NOT_FOUND));
     }
 }

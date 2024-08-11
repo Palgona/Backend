@@ -1,6 +1,7 @@
 package com.palgona.palgona.domain.product;
 
 import com.palgona.palgona.common.entity.BaseTimeEntity;
+import com.palgona.palgona.domain.chat.ChatRoom;
 import com.palgona.palgona.domain.member.Member;
 import jakarta.persistence.*;
 
@@ -42,6 +43,9 @@ public class Product extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    @OneToMany(mappedBy = "product")
+    private List<ChatRoom> chatRooms = new ArrayList<>();
 
     @OneToMany(mappedBy = "product")
     private List<ProductImage> productImages = new ArrayList<>();
